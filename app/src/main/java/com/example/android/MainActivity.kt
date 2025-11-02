@@ -11,37 +11,30 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
+import com.example.android.navigation.NavGraph
+import com.example.android.ui.components.BottomBar
+import com.example.android.ui.components.TopBar
 import com.example.android.ui.theme.AndroidTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
-            AndroidTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+            val navController = rememberNavController()
+            Scaffold(
+                topBar = {
+                    TopBar(title = "Four-togenic")
+                },
+                bottomBar = { BottomBar(navController) }
+            ) { paddingValues ->
+                // paddingValues 적용
+                NavGraph(
+                    navController = navController,
+                    modifier = Modifier.padding(paddingValues)
+                )
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    AndroidTheme {
-        Greeting("Android")
-    }
-}

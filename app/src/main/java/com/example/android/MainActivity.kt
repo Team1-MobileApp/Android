@@ -13,6 +13,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.android.ui.theme.AndroidTheme
 
+import com.example.android.ui.theme.login.LoginScreen
+import com.example.android.ui.theme.login.LoginViewModel
+
+sealed class Screen(val route: String) {
+    object Login : Screen("login")
+    object Home : Screen("home")
+}
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,28 +28,16 @@ class MainActivity : ComponentActivity() {
         setContent {
             AndroidTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
+                    LoginScreen(
+                        onLoginSuccess = { userId ->
+                             // 로그인 성공 시 home screen으로 넘어가는거 구현해야함
+                        },
+                        onRegisterClick = {
+                            // 회원가입 구현해야함
+                        }
                     )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    AndroidTheme {
-        Greeting("Android")
     }
 }

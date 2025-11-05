@@ -1,7 +1,6 @@
-package com.example.android.ui.theme.login
+package com.example.android.ui.login
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import com.example.android.R
 
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -29,15 +27,17 @@ fun LoginScreen(
     val context = LocalContext.current
     var userId by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     val scrollState = rememberScrollState()
-
     val mainBlueColor = colorResource(id = R.color.main_blue)
 
     // 자동 로그인 체크
     LaunchedEffect(Unit) {
-        viewModel.checkAutoLogin { savedId ->
-            onLoginSuccess(savedId)
-        }
+//        viewModel.checkAutoLogin { savedId ->
+//            if (!savedId.isNullOrEmpty()) {
+//                onLoginSuccess(savedId)
+//            }
+//        }
     }
 
     Column(
@@ -96,6 +96,8 @@ fun LoginScreen(
         ) {
             Text("Login", style = MaterialTheme.typography.titleMedium, color = Color.White)
         }
+
+        errorMessage?.let { Text(text = it, color = Color.Red) }
 
         Spacer(modifier = Modifier.height(16.dp))
 

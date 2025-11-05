@@ -1,4 +1,4 @@
-package com.example.android.ui.theme.login
+package com.example.android.ui.login
 
 import android.app.Application
 import android.content.Context

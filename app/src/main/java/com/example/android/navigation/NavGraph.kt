@@ -2,10 +2,15 @@ package com.example.android.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.example.android.ui.album.AlbumDetailScreen
+import com.example.android.ui.album.AlbumPhotoDetailScreen
 import com.example.android.ui.album.AlbumScreen
 import com.example.android.ui.home.HomeScreen
 import com.example.android.ui.profile.ProfileScreen
@@ -38,7 +43,32 @@ fun NavGraph(
         }
 
         composable("home") { HomeScreen() }
-        composable("album") { AlbumScreen() }
+        composable("album") { AlbumScreen(navController) }
         composable("profile") { ProfileScreen() }
+
+        composable(
+            route = "albumDetail/{albumName}",
+            arguments = listOf(navArgument("albumName") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val albumName = backStackEntry.arguments?.getString("albumName") ?: ""
+            AlbumDetailScreen(navController, albumName)
+        }
+
+        composable(
+            "photoDetail/{albumName}/{photoName}",
+            arguments = listOf(
+                navArgument("albumName") { type = NavType.StringType },
+                navArgument("photoName") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val context = LocalContext.current
+            val albumName = backStackEntry.arguments?.getString("albumName")!!
+            val photoName = backStackEntry.arguments?.getString("photoName")!!
+
+            AlbumPhotoDetailScreen(
+                albumName = albumName,
+                photoName = photoName
+            )
+        }
     }
 }

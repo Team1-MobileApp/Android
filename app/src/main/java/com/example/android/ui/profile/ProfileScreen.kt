@@ -169,10 +169,11 @@ fun ProfileScreen(profileViewModel: ProfileViewModel = viewModel(factory = Profi
                         modifier = Modifier.fillMaxSize()
                     )
 
-                    if (photoResId == albumPhotos.firstOrNull()) {
-
-                        PhotoOverlay(likeCount = 728, daysAgo = 2)
-                    }
+//                    if (photoResId == albumPhotos.firstOrNull()) {
+//
+//                        PhotoOverlay(likeCount =0, daysAgo = 1)
+//                    }
+                    PhotoOverlay(likeCount =0, daysAgo = 1)
                 }
             }
         }

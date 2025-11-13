@@ -72,7 +72,7 @@ fun AlbumDetailScreen(navController: NavController, albumName: String) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_album),
                 contentDescription = "Album Icon",
-                tint = Color(0xFF90A4AE),
+                tint = Color(0xFF6D94C5),
                 modifier = Modifier.size(84.dp).padding(end = 16.dp)
             )
             Column {

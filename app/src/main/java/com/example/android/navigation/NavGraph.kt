@@ -1,5 +1,6 @@
 package com.example.android.navigation
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -12,6 +13,7 @@ import androidx.navigation.navArgument
 import com.example.android.ui.album.AlbumDetailScreen
 import com.example.android.ui.album.AlbumPhotoDetailScreen
 import com.example.android.ui.album.AlbumScreen
+import com.example.android.ui.home.FullScreenPhotoScreen
 import com.example.android.ui.home.HomeScreen
 import com.example.android.ui.profile.ProfileScreen
 import com.example.android.ui.login.LoginScreen
@@ -42,10 +44,26 @@ fun NavGraph(
             )
         }
 
-        composable("home") { HomeScreen() }
+        composable("home") { HomeScreen(
+            onPhotoClick = { photoResId ->
+                Log.d("NavGraph", "Navigating to fullScreenPhoto with ID: $photoResId")
+                navController.navigate("fullScreenPhoto/$photoResId")
+            }
+        ) }
         composable("album") { AlbumScreen(navController) }
         composable("profile") { ProfileScreen() }
+        composable(route = "fullScreenPhoto/{photoResId}",
+            arguments = listOf(navArgument("photoResId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val photoResId = backStackEntry.arguments?.getInt("photoResId")
 
+            FullScreenPhotoScreen(
+                photoResId = photoResId,
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
         composable(
             route = "albumDetail/{albumName}",
             arguments = listOf(navArgument("albumName") { type = NavType.StringType })

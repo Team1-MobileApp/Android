@@ -39,6 +39,8 @@ android {
     }
 }
 
+val cameraxVersion = "1.3.1"
+
 dependencies {
 
     implementation(libs.androidx.core.ktx)
@@ -61,4 +63,22 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.0")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("com.google.code.gson:gson:2.10.1")
+
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+    // CameraX core
+    implementation("androidx.camera:camera-core:${cameraxVersion}")
+    implementation("androidx.camera:camera-camera2:${cameraxVersion}")
+    implementation("androidx.camera:camera-lifecycle:${cameraxVersion}")
+    implementation("androidx.camera:camera-view:${cameraxVersion}")
+    implementation("androidx.camera:camera-extensions:${cameraxVersion}")
+
+    // MLKit Vision Extension (현재 1.3.x 안정버전 없음 → 1.4 alpha 사용)
+    implementation("androidx.camera:camera-mlkit-vision:1.4.0-alpha05")
+
+    // MLKit Barcode Scanner
+    implementation("com.google.mlkit:barcode-scanning:17.2.0")
 }

@@ -24,6 +24,7 @@ import androidx.core.content.FileProvider
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.core.content.ContextCompat
 import com.example.android.navigation.NavGraph
@@ -32,6 +33,7 @@ import com.example.android.ui.components.TopBar
 import com.example.android.ui.theme.AndroidTheme
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+
 import java.io.File
 
 class MainActivity : ComponentActivity() {
@@ -50,29 +52,6 @@ class MainActivity : ComponentActivity() {
                 val currentRoute = navBackStackEntry?.destination?.route
                 val showBars = currentRoute != "login"
 
-                // 카메라 인텐트 런처 선언
-                val cameraLauncher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.StartActivityForResult()
-                ) { result ->
-                    if (result.resultCode == Activity.RESULT_OK) {
-                        // 사진 촬영 성공 시 처리
-                    }
-                }
-
-                // cameraLauncher를 rememberUpdatedState로 참조
-                val currentCameraLauncher = rememberUpdatedState(cameraLauncher)
-
-                // 권한 요청 런처
-                val permissionLauncher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.RequestPermission(),
-                    onResult = { granted ->
-                        if (granted) {
-                            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-                            currentCameraLauncher.value.launch(intent)
-                        }
-                    }
-                )
-
                 // 갤러리 접근 권한 런처 추가
                 val galleryPermissionLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.RequestPermission(),
@@ -85,9 +64,20 @@ class MainActivity : ComponentActivity() {
                     }
                 )
 
+                // 카메라 접근 권한 런처
+                val cameraPermissionLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.RequestPermission(),
+                    onResult = { granted ->
+                        if (!granted) {
+                            // 권한 거부 시, 사용자에게 안내가 필요합니다.
+                            Log.e("Permission", "카메라 권한이 거부되었습니다. QR 스캔 기능을 사용할 수 없습니다.")
+                        }
+                    }
+                )
+
                 // 버튼 클릭 시 실행할 함수
-                val onCameraClick = {
-                    permissionLauncher.launch(Manifest.permission.CAMERA)
+                val onCameraClick: () -> Unit = {
+                    navController.navigate("qrScanner")
                 }
 
                 Scaffold(
@@ -109,15 +99,27 @@ class MainActivity : ComponentActivity() {
                     val isReady = remember { mutableStateOf(false) }
 
                     LaunchedEffect(Unit) {
-                        val hasPermission = ContextCompat.checkSelfPermission(
+                        // 1. 갤러리 권한 확인 및 요청
+                        val hasGalleryPermission = ContextCompat.checkSelfPermission(
                             context,
                             Manifest.permission.READ_MEDIA_IMAGES
                         ) == PackageManager.PERMISSION_GRANTED
 
-                        if (!hasPermission) {
+                        if (!hasGalleryPermission) {
                             galleryPermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
                         }
 
+                        // 2. 카메라 권한 확인 및 요청
+                        val hasCameraPermission = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.CAMERA
+                        ) == PackageManager.PERMISSION_GRANTED
+
+                        if (!hasCameraPermission) {
+                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        }
+
+                        // 권한 요청 후 (사용자 응답 대기 후) UI 표시
                         isReady.value = true
                     }
 
@@ -151,3 +153,4 @@ fun getAlbumsRootDir(context: Context): File {
     }
     return rootDir
 }
+

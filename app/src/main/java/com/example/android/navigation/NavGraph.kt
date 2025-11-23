@@ -11,8 +11,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.android.ui.album.AlbumDetailScreen
+import com.example.android.ui.album.AlbumDetailViewModel
+import com.example.android.ui.album.AlbumDetailViewModelFactory
 import com.example.android.ui.album.AlbumPhotoDetailScreen
 import com.example.android.ui.album.AlbumScreen
+import com.example.android.ui.components.QRScannerScreen
 import com.example.android.ui.home.FullScreenPhotoScreen
 import com.example.android.ui.home.HomeScreen
 import com.example.android.ui.profile.ProfileScreen
@@ -65,12 +68,16 @@ fun NavGraph(
             )
         }
         composable(
-            route = "albumDetail/{albumName}",
-            arguments = listOf(navArgument("albumName") { type = NavType.StringType })
+            "albumDetail/{albumId}",
+            arguments = listOf(navArgument("albumId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val albumName = backStackEntry.arguments?.getString("albumName") ?: ""
-            AlbumDetailScreen(navController, albumName)
+            val albumId = backStackEntry.arguments?.getString("albumId") ?: ""
+            val viewModel: AlbumDetailViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = AlbumDetailViewModelFactory(LocalContext.current)
+            )
+            AlbumDetailScreen(navController, albumId, viewModel)
         }
+
 
         composable(
             "photoDetail/{albumName}/{photoName}",
@@ -86,6 +93,14 @@ fun NavGraph(
             AlbumPhotoDetailScreen(
                 albumName = albumName,
                 photoName = photoName
+            )
+        }
+        composable("qrScanner") {
+            QRScannerScreen(
+                onResult = { result ->
+                    Log.d("QR", "스캔 결과: $result")
+                    navController.popBackStack()
+                }
             )
         }
     }

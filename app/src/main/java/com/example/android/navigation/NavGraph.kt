@@ -19,7 +19,6 @@ import com.example.android.ui.album.AlbumDetailScreen
 import com.example.android.ui.album.AlbumDetailViewModel
 import com.example.android.ui.album.AlbumDetailViewModelFactory
 import com.example.android.ui.album.AlbumPhotoDetailScreen
-import com.example.android.ui.album.AlbumPhotoDetailViewModel
 import com.example.android.ui.album.AlbumScreen
 import com.example.android.ui.components.QRScannerScreen
 import com.example.android.ui.components.QRScannerViewModel
@@ -88,15 +87,19 @@ fun NavGraph(
 
 
         composable(
-            "photoDetail/{photoId}",
-            arguments = listOf(navArgument("photoId") { type = NavType.StringType })
+            "photoDetail/{albumName}/{photoName}",
+            arguments = listOf(
+                navArgument("albumName") { type = NavType.StringType },
+                navArgument("photoName") { type = NavType.StringType }
+            )
         ) { backStackEntry ->
-            val photoId = backStackEntry.arguments?.getString("photoId")!!
-            val viewModel: AlbumPhotoDetailViewModel = viewModel() // 혹은 HiltViewModel
+            val context = LocalContext.current
+            val albumName = backStackEntry.arguments?.getString("albumName")!!
+            val photoName = backStackEntry.arguments?.getString("photoName")!!
 
             AlbumPhotoDetailScreen(
-                photoId = photoId,
-                viewModel = viewModel
+                albumName = albumName,
+                photoName = photoName
             )
         }
         composable("qrScanner") { backStackEntry ->

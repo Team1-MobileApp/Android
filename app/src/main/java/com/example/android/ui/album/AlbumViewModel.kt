@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.android.network.AlbumResponse
 import com.example.android.network.PhotoResponse
+import com.example.android.repository.Album
 import com.example.android.repository.AlbumRepository
 import kotlinx.coroutines.launch
 
@@ -14,7 +15,7 @@ class AlbumViewModel(
     private val repo: AlbumRepository
 ) : ViewModel() {
 
-    var albums by mutableStateOf<List<AlbumResponse>>(emptyList())
+    var albums by mutableStateOf<List<Album>>(emptyList())
         private set
 
     var loading by mutableStateOf(false)

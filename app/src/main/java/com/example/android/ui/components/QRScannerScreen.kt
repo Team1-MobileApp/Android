@@ -35,27 +35,13 @@ data class Album(
 )
 
 /** ---------- ViewModel ---------- **/
-
 class QRScannerViewModel(
     private val repository: AlbumRepository
 ) : ViewModel() {
 
     var scannedUrl by mutableStateOf<String?>(null)
-        private set
-
     var pendingDownloadUrl by mutableStateOf<String?>(null)
-        private set
-
     var albumList by mutableStateOf<List<Album>>(emptyList())
-        private set
-
-    fun setScannedUrl(url: String) {
-        scannedUrl = url
-    }
-
-    fun setPendingDownloadUrl(url: String?) {
-        pendingDownloadUrl = url
-    }
 
     fun loadAlbums(onError: (String) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -70,11 +56,11 @@ class QRScannerViewModel(
         }
     }
 
-    fun uploadFile(context: Context, file: File, albumId: Long?) {
+    fun uploadFile(context: Context, file: File, albumId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val uploaded = repository.uploadPhotoFile(file)
-                if (albumId != null) repository.addPhotoToAlbum(uploaded.photoId.toLong(), albumId)
+                repository.addPhotoToAlbum(uploaded.photoId, albumId)
 
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "업로드 완료!", Toast.LENGTH_SHORT).show()
@@ -89,7 +75,6 @@ class QRScannerViewModel(
 }
 
 /** ---------- DownloadReceiver ---------- **/
-
 class DownloadReceiver(
     private val onDownloaded: (Uri) -> Unit
 ) : BroadcastReceiver() {
@@ -106,7 +91,6 @@ class DownloadReceiver(
 }
 
 /** ---------- QRScannerScreen ---------- **/
-
 @OptIn(ExperimentalGetImage::class)
 @Composable
 fun QRScannerScreen(
@@ -121,7 +105,11 @@ fun QRScannerScreen(
     val receiver = remember {
         DownloadReceiver { uri ->
             val file = uriToFile(context, uri)
-            viewModel.uploadFile(context, file, AlbumSelection.albumId)
+            viewModel.uploadFile(
+                context,
+                file,
+                AlbumSelection.albumId!!.toString()
+            )
         }
     }
 
@@ -166,7 +154,7 @@ fun QRScannerScreen(
     // WebView 다운로드 팝업
     viewModel.pendingDownloadUrl?.let { url ->
         AlertDialog(
-            onDismissRequest = { viewModel.setPendingDownloadUrl(null) },
+            onDismissRequest = { viewModel.pendingDownloadUrl = null },
             title = { Text("사진 다운로드") },
             text = { Text("이 사진을 어떤 앨범에 저장할까요?") },
             confirmButton = {
@@ -178,7 +166,7 @@ fun QRScannerScreen(
                 }) { Text("앨범 선택") }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.setPendingDownloadUrl(null) }) { Text("취소") }
+                TextButton(onClick = { viewModel.pendingDownloadUrl = null }) { Text("취소") }
             }
         )
     }
@@ -197,7 +185,7 @@ fun QRScannerScreen(
                         ): Boolean {
                             val link = request?.url.toString()
                             if (link.matches(Regex(".*\\.(png|jpg|jpeg|gif|webp|zip|pdf)(\\?.*)?$"))) {
-                                viewModel.setPendingDownloadUrl(link)
+                                viewModel.pendingDownloadUrl = link
                                 return true
                             }
                             return false
@@ -235,7 +223,7 @@ fun QRScannerScreen(
                     scanner.process(inputImage)
                         .addOnSuccessListener { barcodes ->
                             barcodes.firstOrNull()?.rawValue?.let { value ->
-                                viewModel.setScannedUrl(value)
+                                viewModel.scannedUrl = value
                                 onResult(value)
                             }
                         }
@@ -256,9 +244,7 @@ fun QRScannerScreen(
     )
 }
 
-
 /** ---------------- 다운로드 시작 ---------------- **/
-
 fun startDownloadWithAlbum(context: Context, url: String, albumId: String) {
     val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     val request = DownloadManager.Request(Uri.parse(url))
@@ -271,7 +257,6 @@ fun startDownloadWithAlbum(context: Context, url: String, albumId: String) {
 }
 
 /** ---------------- Uri → File 변환 ---------------- **/
-
 fun uriToFile(context: Context, uri: Uri): File {
     val input = context.contentResolver.openInputStream(uri)!!
     val file = File(context.cacheDir, "downloaded_${System.currentTimeMillis()}.jpg")
@@ -283,7 +268,6 @@ fun uriToFile(context: Context, uri: Uri): File {
 }
 
 /** ---------- 앨범 선택 상태 저장용 ---------- **/
-
 object AlbumSelection {
     var albumId: Long? = null
 }

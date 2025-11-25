@@ -2,6 +2,7 @@ package com.example.android.navigation
 
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -10,6 +11,10 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.android.network.AlbumService
+import com.example.android.network.ApiClient
+import com.example.android.network.PhotoService
+import com.example.android.repository.AlbumRepository
 import com.example.android.ui.album.AlbumDetailScreen
 import com.example.android.ui.album.AlbumDetailViewModel
 import com.example.android.ui.album.AlbumDetailViewModelFactory
@@ -18,6 +23,7 @@ import com.example.android.ui.album.AlbumPhotoDetailViewModel
 import com.example.android.ui.album.AlbumScreen
 import com.example.android.ui.components.QRScannerScreen
 import com.example.android.ui.components.QRScannerViewModel
+import com.example.android.ui.components.QRScannerViewModelFactory
 import com.example.android.ui.home.FullScreenPhotoScreen
 import com.example.android.ui.home.HomeScreen
 import com.example.android.ui.profile.ProfileScreen
@@ -93,8 +99,20 @@ fun NavGraph(
                 viewModel = viewModel
             )
         }
-        composable("qrScanner") {
-            val viewModel: QRScannerViewModel = hiltViewModel() // Hilt 사용 시
+        composable("qrScanner") { backStackEntry ->
+
+            val context = LocalContext.current
+            val retrofit = ApiClient.getRetrofit(context)
+            val viewModel: QRScannerViewModel = viewModel(
+                backStackEntry,
+                factory = QRScannerViewModelFactory(
+                    AlbumRepository(
+                        retrofit.create(AlbumService::class.java),
+                        retrofit.create(PhotoService::class.java)
+                    )
+                )
+            )
+
             QRScannerScreen(viewModel = viewModel) { result ->
                 Log.d("QR", "스캔 결과: $result")
                 navController.popBackStack()

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.android.network.ApiClient
 import com.example.android.network.AlbumService
+import com.example.android.network.PhotoService
 import com.example.android.repository.AlbumRepository
 
 class AlbumDetailViewModelFactory(
@@ -12,8 +13,9 @@ class AlbumDetailViewModelFactory(
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         val retrofit = ApiClient.getRetrofit(context)
-        val api = retrofit.create(AlbumService::class.java)
-        val repo = AlbumRepository(api)
+        val albumApi = retrofit.create(AlbumService::class.java)
+        val photoApi = retrofit.create(PhotoService::class.java)
+        val repo = AlbumRepository(albumApi, photoApi)
         return AlbumDetailViewModel(repo) as T
     }
 }

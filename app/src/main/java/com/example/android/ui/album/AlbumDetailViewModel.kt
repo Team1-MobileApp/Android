@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.android.network.PhotoResponse
+import com.example.android.repository.Album
 import com.example.android.repository.AlbumRepository
 import kotlinx.coroutines.launch
 

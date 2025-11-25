@@ -34,4 +34,13 @@ class AlbumRepository(
     suspend fun addPhotoToAlbum(photoId: String, albumId: String) {
         photoService.addPhotoToAlbum(photoId, AddPhotoToAlbumRequest(albumId.toString()))
     }
+
+    suspend fun getAlbumPhotos(albumId: String): List<PhotoResponse> {
+        return albumService.getAlbumPhotos(albumId)
+    }
+
+    suspend fun createAlbum(title: String, description: String, visibility: String) {
+        val request = CreateAlbumRequest(title, description, visibility)
+        albumService.createAlbum(request)
+    }
 }

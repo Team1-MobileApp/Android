@@ -51,7 +51,7 @@ fun AlbumScreen(
     }
 
     // AddButton 항목 추가
-    val albumsWithAddButton = albums.map { AlbumItem(it.id.toString(), it.name) } + AlbumItem("AddButton", "Add")
+    val albumsWithAddButton = albums.map { AlbumItem(it.id.toString(), it.name ?: "제목 없음") } + AlbumItem("AddButton", "Add")
 
 
     LazyVerticalGrid(columns = GridCells.Fixed(2)) {

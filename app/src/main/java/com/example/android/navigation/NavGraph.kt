@@ -14,8 +14,10 @@ import com.example.android.ui.album.AlbumDetailScreen
 import com.example.android.ui.album.AlbumDetailViewModel
 import com.example.android.ui.album.AlbumDetailViewModelFactory
 import com.example.android.ui.album.AlbumPhotoDetailScreen
+import com.example.android.ui.album.AlbumPhotoDetailViewModel
 import com.example.android.ui.album.AlbumScreen
 import com.example.android.ui.components.QRScannerScreen
+import com.example.android.ui.components.QRScannerViewModel
 import com.example.android.ui.home.FullScreenPhotoScreen
 import com.example.android.ui.home.HomeScreen
 import com.example.android.ui.profile.ProfileScreen
@@ -80,28 +82,23 @@ fun NavGraph(
 
 
         composable(
-            "photoDetail/{albumName}/{photoName}",
-            arguments = listOf(
-                navArgument("albumName") { type = NavType.StringType },
-                navArgument("photoName") { type = NavType.StringType }
-            )
+            "photoDetail/{photoId}",
+            arguments = listOf(navArgument("photoId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val context = LocalContext.current
-            val albumName = backStackEntry.arguments?.getString("albumName")!!
-            val photoName = backStackEntry.arguments?.getString("photoName")!!
+            val photoId = backStackEntry.arguments?.getString("photoId")!!
+            val viewModel: AlbumPhotoDetailViewModel = viewModel() // 혹은 HiltViewModel
 
             AlbumPhotoDetailScreen(
-                albumName = albumName,
-                photoName = photoName
+                photoId = photoId,
+                viewModel = viewModel
             )
         }
         composable("qrScanner") {
-            QRScannerScreen(
-                onResult = { result ->
-                    Log.d("QR", "스캔 결과: $result")
-                    navController.popBackStack()
-                }
-            )
+            val viewModel: QRScannerViewModel = hiltViewModel() // Hilt 사용 시
+            QRScannerScreen(viewModel = viewModel) { result ->
+                Log.d("QR", "스캔 결과: $result")
+                navController.popBackStack()
+            }
         }
     }
 }

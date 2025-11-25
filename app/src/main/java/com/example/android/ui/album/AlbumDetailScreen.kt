@@ -57,7 +57,7 @@ fun AlbumDetailScreen(navController: NavController, albumId: String, viewModel: 
                             .aspectRatio(1f)
                             .clip(RoundedCornerShape(4.dp))
                             .clickable {
-                                navController.navigate("photoDetail/${albumId}/${photo.id}")
+                                navController.navigate("photoDetail/${photo.id}")
                             },
                         contentScale = ContentScale.Crop
                     )

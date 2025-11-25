@@ -25,7 +25,7 @@ fun LoginScreen(
     onRegisterClick: () -> Unit
 ) {
     val context = LocalContext.current
-    var userId by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scrollState = rememberScrollState()
@@ -54,11 +54,11 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
 
-        // 아이디입력
+        // 이메일 입력 필드
         OutlinedTextField(
-            value = userId,
-            onValueChange = { userId = it },
-            label = { Text("Input your ID.") },
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Input your Email.") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
@@ -80,7 +80,7 @@ fun LoginScreen(
         // 로그인 버튼
         Button(
             onClick = {
-                viewModel.userId = userId
+                viewModel.email = email
                 viewModel.password = password
                 viewModel.login(
                     onSuccess = { id -> onLoginSuccess(id) },

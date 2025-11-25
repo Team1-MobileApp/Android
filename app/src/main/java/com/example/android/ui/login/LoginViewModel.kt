@@ -7,38 +7,19 @@ import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import com.example.android.data.TokenManager
+import com.example.android.network.ApiClient
+import com.example.android.network.AuthService
+import com.example.android.network.LoginRequest
 
-// 임시
-interface ApiService{
-    suspend fun login(userId:String, password:String):LoginResponse
-}
-
-// 임시
-data class LoginResponse(
-    val success :Boolean,
-    val message : String,
-    val token : String?,
-    val Id : String?
-)
-
-// 임시
-class DummyApiService : ApiService{
-    override suspend fun login(userId: String, password: String): LoginResponse {
-        return if (userId == "test" && password == "1234") {
-            LoginResponse(true, "Login Successful", "dummy_token", userId)
-        } else {
-            LoginResponse(false, "Incorrect ID or Password", null, null)
-        }
-    }
-}
 
 class LoginViewModel(application :Application):AndroidViewModel(application){
     private val context = getApplication<Application>().applicationContext
     private val prefs : SharedPreferences = context.getSharedPreferences("UserPrefs",Context.MODE_PRIVATE)
 
-    private val apiService : ApiService = DummyApiService()
+    private val apiService : AuthService = ApiClient.getRetrofit(context).create(AuthService::class.java)
 
-    var userId = ""
+    var email = ""
     var password = ""
 
     fun checkAutoLogin(onSuccess : (String) ->Unit){
@@ -49,16 +30,27 @@ class LoginViewModel(application :Application):AndroidViewModel(application){
     }
 
     fun login(onSuccess : (String) ->Unit, onError : (String) ->Unit){
-        if (userId.isBlank() || password.isBlank()){
+        if (email.isBlank() || password.isBlank()){
             onError("Please fill in all fields")
             return
         }
 
         viewModelScope.launch{
             try{
-                val response = apiService.login(userId,password)
+                val requestBody = LoginRequest(
+                    email = email,
+                    password = password
+                )
+
+                val response = apiService.login(requestBody)
+
                 if (response.success){
-                    val receivedId = response.Id ?: userId
+                    val receivedId = response.Id ?: email
+                    val receivedToken = response.token
+
+                    if (receivedToken != null){
+                        TokenManager.saveTokens(context, receivedToken, receivedToken)
+                    }
                     saveLoginState(receivedId)
                     Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
                     onSuccess(receivedId)
@@ -66,7 +58,7 @@ class LoginViewModel(application :Application):AndroidViewModel(application){
                     onError(response.message)
                 }
             } catch (e: Exception) {
-                onError("Login Error")
+                onError("Login Error: ${e.message}")
             }
         }
     }
@@ -77,5 +69,4 @@ class LoginViewModel(application :Application):AndroidViewModel(application){
     fun logout() {
         prefs.edit().remove("userId").apply()
     }
-
 }

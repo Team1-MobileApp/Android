@@ -8,7 +8,7 @@ import retrofit2.http.Path
 interface AlbumService {
 
     @GET("/albums")
-    suspend fun getAlbums(): List<AlbumResponse>
+    suspend fun getAlbums(): GetAlbumsResponse
 
     @POST("/albums")
     suspend fun createAlbum(@Body body: CreateAlbumRequest): CreateAlbumResponse
@@ -16,13 +16,22 @@ interface AlbumService {
     @GET("/albums/{albumId}/photos")
     suspend fun getAlbumPhotos(
         @Path("albumId") albumId: String
-        // 나중에 limit, cursor, sort를 @Query로 추가 가능
     ): List<PhotoResponse>
 }
 
 data class AlbumResponse(
-    val id: Int,
-    val name: String
+    val id: String,
+    val ownerId: String,
+    val title: String?,
+    val description: String?,
+    val visibility: String?,
+    val createdAt: String?,
+    val updatedAt: String?
+)
+
+data class GetAlbumsResponse(
+    val items: List<AlbumResponse>,
+    val nextCursor: String?
 )
 
 data class CreateAlbumRequest(

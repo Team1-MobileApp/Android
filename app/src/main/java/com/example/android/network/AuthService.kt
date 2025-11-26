@@ -5,6 +5,16 @@ import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
 
 
+data class User(
+    val id: String,
+    val email: String,
+    val username: String,
+    val displayName: String?,
+    val bio: String?,
+    val avatarUrl: String?,
+    val createdAt: String,
+    val updatedAt: String
+)
 data class RegisterRequest(
     val email : String,
     val username : String,
@@ -13,9 +23,9 @@ data class RegisterRequest(
 )
 
 data class RegisterResponse(
-    val success : Boolean,
-    val message : String,
-    val email : String?
+    val message: String,
+    val error: String?,
+    val statusCode : Int
 )
 data class LoginRequest(
     val email: String,
@@ -23,10 +33,8 @@ data class LoginRequest(
 )
 
 data class LoginResponse(
-    val success :Boolean,
-    val message : String,
-    val token : String?,
-    val Id : String?
+    val user:User,
+    val accessToken : String
 )
 
 interface AuthService {
@@ -41,9 +49,4 @@ interface AuthService {
         @Body request: LoginRequest
     ): LoginResponse
 
-    @FormUrlEncoded
-    @POST("auth/refresh")
-    suspend fun refreshToken(
-        @Field("refreshToken") refreshToken: String
-    ): LoginResponse
 }

@@ -3,6 +3,7 @@ package com.example.android.ui.login
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,6 +12,8 @@ import com.example.android.data.TokenManager
 import com.example.android.network.ApiClient
 import com.example.android.network.AuthService
 import com.example.android.network.LoginRequest
+import retrofit2.HttpException
+import java.io.IOException
 
 
 class LoginViewModel(application :Application):AndroidViewModel(application){
@@ -23,9 +26,14 @@ class LoginViewModel(application :Application):AndroidViewModel(application){
     var password = ""
 
     fun checkAutoLogin(onSuccess : (String) ->Unit){
-        val savedId = prefs.getString("userId",null)
-        if (savedId != null){
-            onSuccess(savedId)
+        viewModelScope.launch {
+            val savedId = prefs.getString("userId",null)
+
+            val accessToken = TokenManager.getAccessToken(context)
+
+            if (savedId != null && accessToken != null){
+                onSuccess(savedId)
+            }
         }
     }
 
@@ -44,29 +52,33 @@ class LoginViewModel(application :Application):AndroidViewModel(application){
 
                 val response = apiService.login(requestBody)
 
-                if (response.success){
-                    val receivedId = response.Id ?: email
-                    val receivedToken = response.token
+                // 액세스 토큰 저장
+                val receivedToken = response.accessToken
+                TokenManager.saveTokens(context, receivedToken, receivedToken)
+                val receivedId = response.user.id
+                saveLoginState(receivedId)
 
-                    if (receivedToken != null){
-                        TokenManager.saveTokens(context, receivedToken, receivedToken)
-                    }
-                    saveLoginState(receivedId)
-                    Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
-                    onSuccess(receivedId)
-                } else {
-                    onError(response.message)
-                }
+                Toast.makeText(context, "Login Success", Toast.LENGTH_SHORT).show()
+                onSuccess(receivedId)
+
+            } catch (e: HttpException) {
+                val errorBody = e.response()?.errorBody()?.string()
+                Log.e("LoginViewModel", "HTTP Error: $errorBody")
+                onError("Login Error : check your email or password")
+
+            } catch (e: IOException) {
+                Log.e("LoginViewModel", "Network Error: ${e.message}")
+                onError("network error : check your network")
+
             } catch (e: Exception) {
-                onError("Login Error: ${e.message}")
+                Log.e("LoginViewModel", "Login Error: ${e.message}")
+                onError("Login error")
             }
         }
     }
+
     private fun saveLoginState(id: String) {
         prefs.edit().putString("userId", id).apply()
     }
 
-    fun logout() {
-        prefs.edit().remove("userId").apply()
-    }
 }

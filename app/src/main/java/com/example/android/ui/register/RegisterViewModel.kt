@@ -13,7 +13,8 @@ import com.example.android.network.ApiClient
 import com.example.android.network.AuthService
 import com.example.android.network.RegisterRequest
 import kotlinx.coroutines.launch
-
+import retrofit2.HttpException
+import java.io.IOException
 class RegisterViewModel(application: Application) : AndroidViewModel(application) {
     private val context = getApplication<Application>().applicationContext
     private val authService: AuthService = ApiClient.getRetrofit(context).create(AuthService::class.java)
@@ -44,24 +45,19 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
 
                 val response = authService.register(requestBody)
 
-                if (response.success) {
-                    Toast.makeText(context, "Register Success", Toast.LENGTH_SHORT).show()
-                    onSuccess(response.email ?: email)
-                } else {
-                    onError(response.message)
+                Toast.makeText(context, "Register Success", Toast.LENGTH_SHORT).show()
+                onSuccess(email)
+
+            }  catch (e: HttpException) {
+                val statusCode = e.code()
+                val errorBody = e.response()?.errorBody()?.string() ?: "unknown server error"
+
+                Log.e("RegisterVM", "HTTP Error $statusCode: $errorBody")
+
+                val errorMessage = when (statusCode) {
+                    400 -> "이미 등록된 이메일 또는 유저명입니다.."
+                    else -> "회원가입 실패 (코드: $statusCode)"
                 }
-            } catch (e: Exception) {
-                if (e is retrofit2.HttpException) {
-                    val errorBody = e.response()?.errorBody()?.string()
-                    val statusCode = e.code()
-
-                    Log.e("RegisterVM", "HTTP Error $statusCode: $errorBody")
-
-                    onError("Register Error (Code $statusCode): Check Logcat for details.")
-                }else{
-                    onError("Register Error: ${e.message}")
-                }
-
             }
         }
     }

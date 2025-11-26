@@ -1,6 +1,7 @@
 package com.example.android.data
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.datastore.preferences.core.*
 import kotlinx.coroutines.flow.first
@@ -15,6 +16,7 @@ object TokenManager {
         context.dataStore.edit { prefs ->
             prefs[accessToken] = access
             prefs[refreshToken] = refresh
+            Log.d("TokenManager", "Access Token 저장 성공: $accessToken")
 
         }
     }

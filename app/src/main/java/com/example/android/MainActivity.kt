@@ -50,7 +50,9 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
-                val showBars = currentRoute != "login"
+
+                val authRoutes = remember { listOf("login", "register", "qrScanner") }
+                val showBars = currentRoute !in authRoutes
 
                 // 갤러리 접근 권한 런처 추가
                 val galleryPermissionLauncher = rememberLauncherForActivityResult(

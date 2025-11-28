@@ -35,12 +35,17 @@ class AlbumRepository(
         photoService.addPhotoToAlbum(photoId, AddPhotoToAlbumRequest(albumId.toString()))
     }
 
-    suspend fun getAlbumPhotos(albumId: String): List<PhotoResponse> {
+    suspend fun getAlbumPhotos(albumId: String): AlbumPhotosResponse {
         return albumService.getAlbumPhotos(albumId)
     }
 
     suspend fun createAlbum(title: String, description: String, visibility: String) {
         val request = CreateAlbumRequest(title, description, visibility)
         albumService.createAlbum(request)
+    }
+
+    suspend fun deleteAlbum(albumId: String): Boolean {
+        val response = albumService.deleteAlbum(albumId)
+        return response.success == "true"
     }
 }

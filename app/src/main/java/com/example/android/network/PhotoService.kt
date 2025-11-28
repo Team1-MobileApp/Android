@@ -4,11 +4,14 @@ import com.google.gson.annotations.SerializedName
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface PhotoService {
 
@@ -30,11 +33,26 @@ interface PhotoService {
         @Body request: AddPhotoToAlbumRequest
     )
 
+    @DELETE("/photos/{photoId}")
+    suspend fun deletePhoto(@Path("photoId") photoId: String): DeletePhotoResponse
+
+    @DELETE("/photos/{photoId}/albums")
+    suspend fun deletePhotoFromAlbum(
+        @Path("photoId") photoId: String,
+        @Query("album_id") albumId: String
+    ): DeletePhotoFromAlbumResponse
+
+    @PATCH("/photos/{photoId}/visibility")
+    suspend fun changeVisibility(
+        @Path("photoId") photoId: String,
+        @Body request: ChangeVisibilityRequest
+    ): ChangeVisibilityResponse
+
 }
 
 data class GetPhotoDetailResponse(
     val photoId : String,
-    val fileurl : String,
+    val fileUrl : String,
     val visibility : String,
     val createdAt : String,
     val updatedAt : String
@@ -47,4 +65,20 @@ data class PhotoUploadResponse(
 
 data class AddPhotoToAlbumRequest(
     val albumId: String
+)
+
+data class DeletePhotoResponse(
+    val success: String
+)
+
+data class DeletePhotoFromAlbumResponse(
+    val success: String
+)
+
+data class ChangeVisibilityRequest(
+    val visibility: String
+)
+
+data class ChangeVisibilityResponse(
+    val visibility: String
 )

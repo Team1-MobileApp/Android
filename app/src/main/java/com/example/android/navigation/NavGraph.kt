@@ -15,11 +15,13 @@ import com.example.android.network.AlbumService
 import com.example.android.network.ApiClient
 import com.example.android.network.PhotoService
 import com.example.android.repository.AlbumRepository
+import com.example.android.repository.PhotoRepository
 import com.example.android.ui.album.AlbumDetailScreen
 import com.example.android.ui.album.AlbumDetailViewModel
 import com.example.android.ui.album.AlbumDetailViewModelFactory
 import com.example.android.ui.album.AlbumPhotoDetailScreen
 import com.example.android.ui.album.AlbumPhotoDetailViewModel
+import com.example.android.ui.album.AlbumPhotoDetailViewModelFactory
 import com.example.android.ui.album.AlbumScreen
 import com.example.android.ui.components.QRScannerScreen
 import com.example.android.ui.components.QRScannerViewModel
@@ -103,14 +105,32 @@ fun NavGraph(
 
 
         composable(
-            "photoDetail/{photoId}",
-            arguments = listOf(navArgument("photoId") { type = NavType.StringType })
+            route = "photoDetail/{albumId}/{photoId}",
+            arguments = listOf(
+                navArgument("albumId") { type = NavType.StringType },
+                navArgument("photoId") { type = NavType.StringType }
+            )
         ) { backStackEntry ->
+
+            val albumId = backStackEntry.arguments?.getString("albumId")!!
             val photoId = backStackEntry.arguments?.getString("photoId")!!
-            val viewModel: AlbumPhotoDetailViewModel = viewModel() // 혹은 HiltViewModel
+
+            val context = LocalContext.current
+            val retrofit = ApiClient.getRetrofit(context)
+
+            val viewModel: AlbumPhotoDetailViewModel = viewModel(
+                backStackEntry,
+                factory = AlbumPhotoDetailViewModelFactory(
+                    PhotoRepository(
+                        retrofit.create(PhotoService::class.java)
+                    )
+                )
+            )
 
             AlbumPhotoDetailScreen(
+                albumId = albumId,
                 photoId = photoId,
+                navController = navController,
                 viewModel = viewModel
             )
         }

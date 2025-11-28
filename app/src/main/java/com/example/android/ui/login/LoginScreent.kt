@@ -20,7 +20,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun LoginScreen(
-    viewModel: LoginViewModel = viewModel(),
+    viewModel: LoginViewModel,
     onLoginSuccess: (String) -> Unit,
     onRegisterClick: () -> Unit
 ) {

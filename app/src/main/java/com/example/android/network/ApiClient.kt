@@ -19,7 +19,8 @@ object ApiClient {
             .build()
 
         return Retrofit.Builder()
-            .baseUrl("https://fourtogenic-server-production.up.railway.app/api/")
+            //.baseUrl("https://fourtogenic-server-production.up.railway.app/api/")
+            .baseUrl("https://fourtogenic-server-production.up.railway.app/")
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

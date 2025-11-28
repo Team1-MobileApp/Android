@@ -29,6 +29,8 @@ import com.example.android.ui.home.HomeScreen
 import com.example.android.ui.profile.ProfileScreen
 import com.example.android.ui.login.LoginScreen
 import com.example.android.ui.login.LoginViewModel
+import com.example.android.ui.register.RegisterScreen
+import com.example.android.ui.register.RegisterViewModel
 
 @Composable
 fun NavGraph(
@@ -50,7 +52,20 @@ fun NavGraph(
                     }
                 },
                 onRegisterClick = {
-                    // 회원가입 화면 구현 필요
+                    navController.navigate("register")
+                }
+            )
+        }
+        composable("register") {
+            val registerViewModel: RegisterViewModel = viewModel()
+
+            RegisterScreen(
+                viewModel = registerViewModel,
+                onRegistrationSuccess = {
+                    navController.popBackStack()
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }

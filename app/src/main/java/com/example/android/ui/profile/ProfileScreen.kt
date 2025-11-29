@@ -40,7 +40,6 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.android.network.ApiClient
 import com.example.android.network.UserService
 import com.example.android.network.PhotoService
-import com.example.android.repository.UserRepository
 import com.example.android.repository.PhotoRepository
 
 @Composable
@@ -188,21 +187,21 @@ fun ProfileScreen(profileViewModel: ProfileViewModel = viewModel(factory = Profi
             when (showDialogFor.value) {
                 "name" -> {
                     EditProfileDialog(
-                        initialValue = userProfile.displayName, // ⭐️ displayName 사용
+                        initialValue = userProfile.displayName,
                         title = "Edit Name",
                         onDismiss = { showDialogFor.value = null },
                         onSave = { newName ->
-                            profileViewModel.updateProfile(name = newName) // ⭐️ name으로 update 호출
+                            profileViewModel.updateProfile(name = newName)
                         }
                     )
                 }
                 "description" -> {
                     EditProfileDialog(
-                        initialValue = userProfile.bio ?: "", // ⭐️ bio 사용
+                        initialValue = userProfile.bio ?: "",
                         title = "Edit Status Message",
                         onDismiss = { showDialogFor.value = null },
                         onSave = { newDescription ->
-                            profileViewModel.updateProfile(description = newDescription) // ⭐️ description으로 update 호출
+                            profileViewModel.updateProfile(description = newDescription)
                         }
                     )
                 }
@@ -303,75 +302,3 @@ fun PhotoOverlay(likeCount: Int, daysAgo: Int) {
         }
     }
 }
-//
-//class PreviewProfileViewModel : ProfileViewModel(
-//    // UserRepository에 대한 Dummy 객체 생성
-//    userRepository = object : com.example.android.repository.UserRepository(
-//        object : com.example.android.network.UserService {
-//            // UserService의 모든 suspend 함수를 빈 구현으로 정의합니다.
-//            override suspend fun getMyProfile(): com.example.android.network.MyProfileResponse {
-//                throw NotImplementedError("Mock implementation")
-//            }
-//            override suspend fun updateMyProfile(request: com.example.android.network.UpdateProfileRequest): com.example.android.network.MyProfileResponse {
-//                throw NotImplementedError("Mock implementation")
-//            }
-//            override suspend fun getUserProfile(userId: String): com.example.android.network.UserProfileResponse {
-//                throw NotImplementedError("Mock implementation")
-//            }
-//        }
-//    ){},
-//
-//    // PhotoRepository에 대한 Dummy 객체 생성
-//    photoRepository = object : com.example.android.repository.PhotoRepository(
-//        object : com.example.android.network.PhotoService {
-//            // PhotoService의 모든 suspend 함수를 빈 구현으로 정의합니다.
-//            // Mocking 시에는 실제 구현이 필요 없으므로 Throw 또는 Do Nothing 처리합니다.
-//            override suspend fun uploadPhotoFile(file: okhttp3.MultipartBody.Part, visibility: okhttp3.RequestBody): com.example.android.network.PhotoUploadResponse {
-//                throw NotImplementedError("Mock implementation")
-//            }
-//            override suspend fun getPhotoDetail(photoId: String): com.example.android.network.GetPhotoDetailResponse {
-//                throw NotImplementedError("Mock implementation")
-//            }
-//            override suspend fun addPhotoToAlbum(photoId: String, request: com.example.android.network.AddPhotoToAlbumRequest) {
-//                // Do nothing
-//            }
-//            override suspend fun getMyUploadedPhotos(): List<com.example.android.network.UserPhotoItemResponse> {
-//                return emptyList()
-//            }
-//        }
-//    ){}
-//) {
-//    override val uiState: State<ProfileUiState> = mutableStateOf(
-//        ProfileUiState.Success(
-//            profile = UserProfile(
-//                displayName = "Preview User",
-//                bio = "This is a preview status message.",
-//                avatarUrl = null,
-//                photoCount = 10,
-//                receivedLikeCount = 5
-//            )
-//        )
-//    )
-//
-//    override val albumPhotos: State<List<Photo>> = mutableStateOf(
-//        listOf(
-//            Photo("1", "https://example.com/photo1", 3, 2),
-//            Photo("2", "https://example.com/photo2", 5, 1),
-//            Photo("3", "https://example.com/photo3", 1, 10),
-//            Photo("4", "https://example.com/photo4", 8, 4),
-//        )
-//    )
-//
-//    // Preview에서는 실제 API 호출을 막습니다.
-//    override fun loadUserProfile() {}
-//    override fun loadAlbumPhotos() {}
-//    override fun updateProfile(name: String?, description: String?, profileImageUri: Uri?) {}
-//}
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun ProfileScreenPreview() {
-//    MaterialTheme {
-//        ProfileScreen(profileViewModel = PreviewProfileViewModel())
-//    }
-//}

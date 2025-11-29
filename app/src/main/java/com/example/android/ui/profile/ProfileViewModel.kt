@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 
 data class Photo(
     val id: String,
-    val imageUrl: String,
+    val imageUrl: String?,
     val likeCount: Int = 0,
     val daysAgo: Int = 0
 )

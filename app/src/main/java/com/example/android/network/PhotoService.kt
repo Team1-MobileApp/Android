@@ -13,12 +13,6 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-data class UserPhotoItemResponse(
-    val id: String,
-    val url: String,
-    val likeCount: Int,
-    val daysAgo: Int
-)
 
 interface PhotoService {
 
@@ -55,11 +49,35 @@ interface PhotoService {
         @Body request: ChangeVisibilityRequest
     ): ChangeVisibilityResponse
 
-    @GET("users/me/photos")
-    suspend fun getMyUploadedPhotos() : List<UserPhotoItemResponse>
+    @GET("/users/me/photos")
+    suspend fun getMyUploadedPhotos(): List<UserPhotoItemResponse>
+
+    // 좋아요 추가
+    @POST("/likes")
+    suspend fun likePhoto(@Body request: LikeRequest)
+
+    // 좋아요 취소
+    @DELETE("/likes")
+    suspend fun unlikePhoto(
+        @Query("target_type") targetType: String,
+        @Query("target_id") targetId: String
+    )
+
+    @GET("/feed/public")
+    suspend fun getPublicFeed(@Query("sort") sort: String,
+        @Query("limit") limit : Int,
+            @Query("cursor") cursor: String?)
+    :FeedResponse
 
 }
 
+
+data class UserPhotoItemResponse(
+    val id: String,
+    @SerializedName("fileUrl") val url: String?,
+    val likeCount: Int,
+    val daysAgo: Int
+)
 data class GetPhotoDetailResponse(
     val photoId : String,
     val fileUrl : String,
@@ -93,3 +111,20 @@ data class ChangeVisibilityRequest(
 data class ChangeVisibilityResponse(
     val visibility: String
 )
+
+data class LikeRequest(
+    val targetType : String,
+    val targetId : String
+)
+
+data class FeedRequest(
+    val sort : String,
+    val limit : Int = 20,
+    val cursor : String?= null
+)
+
+data class FeedResponse(
+    val items : List<UserPhotoItemResponse>,
+    val nextCursor : String?
+)
+

@@ -26,27 +26,39 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import androidx.compose.runtime.LaunchedEffect
+import com.example.android.network.PhotoService
+import com.example.android.repository.PhotoRepository
+
 
 @Composable
 fun FullScreenPhotoScreen(
-    photoResId: Int?,
-    homeViewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(LocalContext.current)),
+    photoId: String?,
+    homeViewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(LocalContext.current, PhotoRepository(
+        LocalContext.current as PhotoService
+    ))),
     onBack: () -> Unit
 ) {
 
-    if (photoResId == null) {
+    val photoState by homeViewModel.currentPhotoState
+
+    val currentPhotoId = photoId
+    val currentPhotoUrl = photoState.fileUrl
+
+    if (currentPhotoId == null || currentPhotoUrl ==null ) {
         Log.d("FullScreen", "Photo ID: null (Navigation Argument Missing)")
         onBack()
         return
     }
 
-    LaunchedEffect(photoResId) {
-        homeViewModel.selectPhoto(photoResId)
-    }
-    val photoState by homeViewModel.currentPhotoState
-    val currentPhotoResId = photoState.photoResId
+    Log.d("FullScreen", "Photo URL: $currentPhotoUrl")
 
-    Log.d("FullScreen", "Photo ID: $currentPhotoResId")
+//    LaunchedEffect(photoResId) {
+//        homeViewModel.selectPhoto(photoResId)
+//    }
+//    val photoState by homeViewModel.currentPhotoState
+//    val currentPhotoResId = photoState.photoResId
+//
+//    Log.d("FullScreen", "Photo ID: $currentPhotoResId")
 
 
     Box(
@@ -56,7 +68,7 @@ fun FullScreenPhotoScreen(
             .clickable(onClick = onBack)
     ) {
         Image(
-            painter = rememberAsyncImagePainter(currentPhotoResId),
+            painter = rememberAsyncImagePainter(currentPhotoUrl),
             contentDescription = "Full Screen Photo",
             contentScale = ContentScale.Fit,
             modifier = Modifier
@@ -89,8 +101,9 @@ fun FullScreenPhotoScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 좋아요 버튼
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = homeViewModel::toggleLike) {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable{homeViewModel.toggleLike()}) {
+                IconButton(onClick = {homeViewModel.toggleLike()}) {
                     Icon(
                         Icons.Filled.Favorite,
                         contentDescription = "Like",
@@ -116,7 +129,7 @@ fun FullScreenPhotoScreen(
             }
 
             // 공유 버튼
-            IconButton(onClick = { homeViewModel.sharePhoto(currentPhotoResId!!) }) {
+            IconButton(onClick = { homeViewModel.sharePhoto() }) {
                 Icon(
                     Icons.Filled.Share,
                     contentDescription = "Share",
@@ -124,15 +137,5 @@ fun FullScreenPhotoScreen(
                 )
             }
         }
-    }
-}
-
-class HomeViewModelFactory(private val context: Context) : androidx.lifecycle.ViewModelProvider.Factory {
-    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return HomeViewModel(context) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

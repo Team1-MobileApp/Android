@@ -1,6 +1,7 @@
 package com.example.android.network
 
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -13,10 +14,15 @@ interface AlbumService {
     @POST("/albums")
     suspend fun createAlbum(@Body body: CreateAlbumRequest): CreateAlbumResponse
 
+    @DELETE("/albums/{albumId}")
+    suspend fun deleteAlbum(@Path("albumId") albumId: String): DeleteAlbumResponse
+
     @GET("/albums/{albumId}/photos")
     suspend fun getAlbumPhotos(
         @Path("albumId") albumId: String
-    ): List<PhotoResponse>
+    ): AlbumPhotosResponse
+
+
 }
 
 data class AlbumResponse(
@@ -50,10 +56,20 @@ data class CreateAlbumResponse(
     val updatedAt: String
 )
 
+data class DeleteAlbumResponse(
+    val success : String
+)
+
+data class AlbumPhotosResponse(
+    val album: AlbumResponse,
+    val photos: List<PhotoResponse>,
+    val nextCursor: String?
+)
+
 data class PhotoResponse(
     val id: String,
     val albumId: String,
-    val url: String,
+    val fileUrl: String,
     val createdAt: String,
     val updatedAt: String
 )

@@ -7,13 +7,14 @@ import com.example.android.network.ChangeVisibilityResponse
 import com.example.android.network.DeletePhotoFromAlbumResponse
 import com.example.android.network.GetPhotoDetailResponse
 import com.example.android.network.PhotoUploadResponse
+import com.example.android.network.UserPhotoItemResponse
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 
-class PhotoRepository(
+open class PhotoRepository(
     private val api: PhotoService
 ) {
 
@@ -52,4 +53,11 @@ class PhotoRepository(
     suspend fun changeVisibility(photoId: String, newVisibility: String): ChangeVisibilityResponse {
         return api.changeVisibility(photoId, ChangeVisibilityRequest(newVisibility))
     }
+    suspend fun getMyUploadedPhotos(): Result<List<UserPhotoItemResponse>> = try {
+        val response = api.getMyUploadedPhotos()
+        Result.success(response)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
 }

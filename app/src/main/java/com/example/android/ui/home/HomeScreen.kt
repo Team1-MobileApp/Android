@@ -52,31 +52,54 @@ fun HomeScreen(profileViewModel: ProfileViewModel = viewModel(factory = ProfileV
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // 이미지 로드(일단 drawable에 있는걸로 로드)
-            items(albumPhotos) { photoResId ->
-                Box(
-                    modifier = Modifier
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { // 💡 클릭 이벤트 처리 추가
-                            Log.d("HomeScreen", "Photo clicked: $photoResId")
-                            homeViewModel.selectPhoto(photoResId)
-                            onPhotoClick(photoResId)
-                        }
-                ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(photoResId),
-                        contentDescription = "Album Photo",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-
-                    // 오버레이
-//                    if (photoResId == albumPhotos.firstOrNull()) {
-//                        PhotoOverlay(likeCount = 0, daysAgo = 1)
-//                    }
-                    PhotoOverlay(likeCount = 0, daysAgo = 1)
-                }
-            }
+//            items(albumPhotos) { photoResId ->
+//                Box(
+//                    modifier = Modifier
+//                        .aspectRatio(1f)
+//                        .clip(RoundedCornerShape(8.dp))
+//                        .clickable { // 💡 클릭 이벤트 처리 추가
+//                            Log.d("HomeScreen", "Photo clicked: $photoResId")
+//                            homeViewModel.selectPhoto(photoResId)
+//                            onPhotoClick(photoResId)
+//                        }
+//                ) {
+//                    Image(
+//                        painter = rememberAsyncImagePainter(photoResId),
+//                        contentDescription = "Album Photo",
+//                        contentScale = ContentScale.Crop,
+//                        modifier = Modifier.fillMaxSize()
+//                    )
+//
+//                    // 오버레이
+////                    if (photoResId == albumPhotos.firstOrNull()) {
+////                        PhotoOverlay(likeCount = 0, daysAgo = 1)
+////                    }
+//                    PhotoOverlay(likeCount = 0, daysAgo = 1)
+//                }items(albumPhotos) { photoResId ->
+//                Box(
+//                    modifier = Modifier
+//                        .aspectRatio(1f)
+//                        .clip(RoundedCornerShape(8.dp))
+//                        .clickable { // 💡 클릭 이벤트 처리 추가
+//                            Log.d("HomeScreen", "Photo clicked: $photoResId")
+//                            homeViewModel.selectPhoto(photoResId)
+//                            onPhotoClick(photoResId)
+//                        }
+//                ) {
+//                    Image(
+//                        painter = rememberAsyncImagePainter(photoResId),
+//                        contentDescription = "Album Photo",
+//                        contentScale = ContentScale.Crop,
+//                        modifier = Modifier.fillMaxSize()
+//                    )
+//
+//                    // 오버레이
+////                    if (photoResId == albumPhotos.firstOrNull()) {
+////                        PhotoOverlay(likeCount = 0, daysAgo = 1)
+////                    }
+//                    PhotoOverlay(likeCount = 0, daysAgo = 1)
+//                }
+//            }
         }
     }
 }

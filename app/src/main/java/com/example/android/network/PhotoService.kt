@@ -13,6 +13,13 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
+data class UserPhotoItemResponse(
+    val id: String,
+    val url: String,
+    val likeCount: Int,
+    val daysAgo: Int
+)
+
 interface PhotoService {
 
     @Multipart
@@ -47,6 +54,9 @@ interface PhotoService {
         @Path("photoId") photoId: String,
         @Body request: ChangeVisibilityRequest
     ): ChangeVisibilityResponse
+
+    @GET("users/me/photos")
+    suspend fun getMyUploadedPhotos() : List<UserPhotoItemResponse>
 
 }
 

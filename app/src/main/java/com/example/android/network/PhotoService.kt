@@ -64,7 +64,8 @@ data class PhotoUploadResponse(
 )
 
 data class AddPhotoToAlbumRequest(
-    val albumId: String
+    val albumId: String,
+    val visibility: String
 )
 
 data class DeletePhotoResponse(

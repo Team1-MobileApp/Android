@@ -23,9 +23,7 @@ import com.example.android.ui.album.AlbumPhotoDetailScreen
 import com.example.android.ui.album.AlbumPhotoDetailViewModel
 import com.example.android.ui.album.AlbumPhotoDetailViewModelFactory
 import com.example.android.ui.album.AlbumScreen
-import com.example.android.ui.components.QRScannerScreen
-import com.example.android.ui.components.QRScannerViewModel
-import com.example.android.ui.components.QRScannerViewModelFactory
+import com.example.android.ui.components.QRScannerScreenWrapper
 import com.example.android.ui.home.FullScreenPhotoScreen
 import com.example.android.ui.home.HomeScreen
 import com.example.android.ui.profile.ProfileScreen
@@ -96,11 +94,20 @@ fun NavGraph(
             "albumDetail/{albumId}",
             arguments = listOf(navArgument("albumId") { type = NavType.StringType })
         ) { backStackEntry ->
+
             val albumId = backStackEntry.arguments?.getString("albumId") ?: ""
+            val context = LocalContext.current
+
+            // Factory를 통해 AlbumDetailViewModel 생성
             val viewModel: AlbumDetailViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                factory = AlbumDetailViewModelFactory(LocalContext.current)
+                factory = AlbumDetailViewModelFactory(context)
             )
-            AlbumDetailScreen(navController, albumId, viewModel)
+
+            AlbumDetailScreen(
+                navController = navController,
+                albumId = albumId,
+                viewModel = viewModel
+            )
         }
 
 
@@ -134,24 +141,8 @@ fun NavGraph(
                 viewModel = viewModel
             )
         }
-        composable("qrScanner") { backStackEntry ->
-
-            val context = LocalContext.current
-            val retrofit = ApiClient.getRetrofit(context)
-            val viewModel: QRScannerViewModel = viewModel(
-                backStackEntry,
-                factory = QRScannerViewModelFactory(
-                    AlbumRepository(
-                        retrofit.create(AlbumService::class.java),
-                        retrofit.create(PhotoService::class.java)
-                    )
-                )
-            )
-
-            QRScannerScreen(viewModel = viewModel) { result ->
-                Log.d("QR", "스캔 결과: $result")
-                navController.popBackStack()
-            }
+        composable("qrScanner") {
+            QRScannerScreenWrapper() // 단순 QR 스캔 후 브라우저 열기
         }
     }
 }

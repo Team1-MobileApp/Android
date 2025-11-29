@@ -24,7 +24,7 @@ class PhotoRepository(
             file.asRequestBody("image/*".toMediaType())
         )
 
-        val visibilityPart = "private".toRequestBody("text/plain".toMediaType())
+        val visibilityPart = "PRIVATE".toRequestBody("text/plain".toMediaType())
 
         // API 호출
         return api.uploadPhotoFile(filePart, visibilityPart)
@@ -34,8 +34,8 @@ class PhotoRepository(
         return api.getPhotoDetail(photoId)
     }
 
-    suspend fun addPhotoToAlbum(photoId: String, albumId: String) {
-        val req = AddPhotoToAlbumRequest(albumId)
+    suspend fun addPhotoToAlbum(photoId: String, albumId: String, visibility: String = "PRIVATE") {
+        val req = AddPhotoToAlbumRequest(albumId, visibility)
         api.addPhotoToAlbum(photoId, req)
     }
 

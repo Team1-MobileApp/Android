@@ -31,10 +31,6 @@ class AlbumRepository(
         return photoService.uploadPhotoFile(filePart, visibilityPart)
     }
 
-    suspend fun addPhotoToAlbum(photoId: String, albumId: String) {
-        photoService.addPhotoToAlbum(photoId, AddPhotoToAlbumRequest(albumId.toString()))
-    }
-
     suspend fun getAlbumPhotos(albumId: String): AlbumPhotosResponse {
         return albumService.getAlbumPhotos(albumId)
     }

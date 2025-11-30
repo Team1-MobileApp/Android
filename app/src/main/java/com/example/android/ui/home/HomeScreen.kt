@@ -18,20 +18,60 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
-import com.example.android.ui.profile.PhotoOverlay
-import com.example.android.ui.profile.ProfileViewModel
-import com.example.android.ui.profile.ProfileViewModelFactory
 import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.Icons
+import com.example.android.repository.PhotoRepository
+import com.example.android.network.PhotoService
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.remember
+import coil.compose.AsyncImagePainter
+import com.example.android.network.AddPhotoToAlbumRequest
+import com.example.android.network.ChangeVisibilityRequest
+import com.example.android.network.ChangeVisibilityResponse
+import com.example.android.network.DeletePhotoFromAlbumResponse
+import com.example.android.network.DeletePhotoResponse
+import com.example.android.network.GetPhotoDetailResponse
+import com.example.android.network.LikeRequest
+import com.example.android.network.UserPhotoItemResponse
+import com.example.android.ui.home.HomeViewModel
+import com.example.android.ui.home.HomeViewModelFactory
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+
 
 @Composable
-fun HomeScreen(profileViewModel: ProfileViewModel = viewModel(factory = ProfileViewModelFactory(LocalContext.current)),
-               homeViewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(LocalContext.current)), // 💡 HomeViewModelFactory가 필요
-               onPhotoClick: (Int) -> Unit
+fun HomeScreen(
+    onPhotoClick: (String) -> Unit
 ) {
+    val context = LocalContext.current
 
-    val albumPhotos by profileViewModel.albumPhotos
+    val client = remember {
+        OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .build()
+    }
+    val photoService = remember {
+        Retrofit.Builder()
+            .baseUrl("https://fourtogenic-server-production.up.railway.app/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(client)
+            .build()
+            .create(PhotoService::class.java)
+    }
+    val photoRepository = remember { PhotoRepository(photoService) }
+    val factory = remember { HomeViewModelFactory(context, photoRepository) }
+
+    val homeViewModel: HomeViewModel = viewModel(factory = factory)
+    val homePhotos by homeViewModel.homePhotos
+
 
     Column(
         modifier = Modifier
@@ -51,32 +91,84 @@ fun HomeScreen(profileViewModel: ProfileViewModel = viewModel(factory = ProfileV
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // 이미지 로드(일단 drawable에 있는걸로 로드)
-            items(albumPhotos) { photoResId ->
+            items(homeViewModel.homePhotos.value) { photo ->
                 Box(
                     modifier = Modifier
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable { // 💡 클릭 이벤트 처리 추가
-                            Log.d("HomeScreen", "Photo clicked: $photoResId")
-                            homeViewModel.selectPhoto(photoResId)
-                            onPhotoClick(photoResId)
+                        .clickable {
+                            Log.d("HomeScreen", "Server Photo Clicked : ${photo.id}")
+                            homeViewModel.selectPhoto(photo.id, photo.url, false, photo.likeCount)
+                            onPhotoClick(photo.id)
                         }
                 ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(photoResId),
-                        contentDescription = "Album Photo",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    val painter = rememberAsyncImagePainter(photo.url)
+                    val isLoading = painter.state is AsyncImagePainter.State.Loading
+                    val isError = painter.state is AsyncImagePainter.State.Error || photo.url == null
 
-                    // 오버레이
-//                    if (photoResId == albumPhotos.firstOrNull()) {
-//                        PhotoOverlay(likeCount = 0, daysAgo = 1)
-//                    }
-                    PhotoOverlay(likeCount = 0, daysAgo = 1)
+                    if (isLoading || isError){
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.LightGray.copy(alpha = 0.5f)),
+                            contentAlignment = Alignment.Center
+                        ){
+                            Text(text = "No Image",color = Color.White)
+                        }
+                    }
+                    if (photo.url!=null){
+                        Image(
+                            painter = painter,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    PhotoOverlay(photo.likeCount, photo.daysAgo)
                 }
+
             }
         }
+
+    }
+}
+
+@Composable
+fun PhotoOverlay(likeCount: Int, daysAgo: Int) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                color = Color.Black.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(8.dp)
+    ) {
+        // 좋아요 수 표시
+        Row(
+            modifier = Modifier.align(Alignment.BottomStart),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Filled.Favorite,
+                contentDescription = "Likes",
+                tint = Color.White,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = "$likeCount",
+                color = Color.White,
+                fontSize = 12.sp
+            )
+        }
+
+        // 사진 올린 날짜 표시
+        Text(
+            text = "${daysAgo}d ago",
+            color = Color.White,
+            fontSize = 12.sp,
+            modifier = Modifier.align(Alignment.TopEnd)
+        )
     }
 }

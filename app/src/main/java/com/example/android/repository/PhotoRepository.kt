@@ -1,19 +1,23 @@
 package com.example.android.repository
 
+import android.util.Log
 import com.example.android.network.PhotoService
 import com.example.android.network.AddPhotoToAlbumRequest
 import com.example.android.network.ChangeVisibilityRequest
 import com.example.android.network.ChangeVisibilityResponse
 import com.example.android.network.DeletePhotoFromAlbumResponse
+import com.example.android.network.FeedRequest
 import com.example.android.network.GetPhotoDetailResponse
+import com.example.android.network.LikeRequest
 import com.example.android.network.PhotoUploadResponse
+import com.example.android.network.UserPhotoItemResponse
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 
-class PhotoRepository(
+open class PhotoRepository(
     private val api: PhotoService
 ) {
 
@@ -52,4 +56,47 @@ class PhotoRepository(
     suspend fun changeVisibility(photoId: String, newVisibility: String): ChangeVisibilityResponse {
         return api.changeVisibility(photoId, ChangeVisibilityRequest(newVisibility))
     }
+    suspend fun getMyUploadedPhotos(): Result<List<UserPhotoItemResponse>> = try {
+        val response = api.getMyUploadedPhotos()
+        Result.success(response)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    suspend fun addPhotoLike(photoId : String) : Result<Unit> =try{
+        val request = LikeRequest(targetType = "PHOTO", targetId = photoId)
+        api.likePhoto(request)
+        Result.success(Unit)
+    }catch (e:Exception){
+        Result.failure(e)
+    }
+
+    suspend fun removePhotoLike(photoId: String): Result<Unit> = try {
+        api.unlikePhoto(targetType = "PHOTO", targetId = photoId)
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    suspend fun getPublicFeed(sort: String = "latest", limit: Int = 20, cursor: String? = null): Result<List<UserPhotoItemResponse>> = try {
+        val feedResponse = api.getPublicFeed(sort, limit, cursor)
+        Result.success(feedResponse.items)
+
+    } catch (e: Exception) {
+        Log.e("PhotoRepository", "Failed to load feed photos: ${e.message}")
+        Result.failure(e)
+    }
+
+    suspend fun uploadProfileImage(file: File): Result<String> = try {
+        val response = uploadPhotoFile(file)
+
+        if (response.url != null) {
+            Result.success(response.url)
+        } else {
+            Result.failure(RuntimeException("Image upload failed: URL is null"))
+        }
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }
+

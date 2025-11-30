@@ -71,20 +71,21 @@ fun NavGraph(
         }
 
         composable("home") { HomeScreen(
-            onPhotoClick = { photoResId ->
-                Log.d("NavGraph", "Navigating to fullScreenPhoto with ID: $photoResId")
-                navController.navigate("fullScreenPhoto/$photoResId")
+            onPhotoClick = { photoId ->
+                Log.d("NavGraph", "Navigating to fullScreenPhoto with ID: $photoId")
+                navController.navigate("fullScreenPhoto/$photoId")
             }
         ) }
         composable("album") { AlbumScreen(navController) }
         composable("profile") { ProfileScreen() }
-        composable(route = "fullScreenPhoto/{photoResId}",
-            arguments = listOf(navArgument("photoResId") { type = NavType.IntType })
+        composable(
+            route = "fullScreenPhoto/{photoId}",
+            arguments = listOf(navArgument("photoId") { type = NavType.StringType
+            nullable = true})
         ) { backStackEntry ->
-            val photoResId = backStackEntry.arguments?.getInt("photoResId")
 
             FullScreenPhotoScreen(
-                photoResId = photoResId,
+                photoId = backStackEntry.arguments?.getString("photoId"),
                 onBack = {
                     navController.popBackStack()
                 }

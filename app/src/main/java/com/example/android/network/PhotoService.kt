@@ -75,6 +75,7 @@ interface PhotoService {
 data class UserPhotoItemResponse(
     val id: String,
     @SerializedName("fileUrl") val url: String?,
+    val isLiked : Boolean?=false,
     val likeCount: Int,
     val daysAgo: Int
 )

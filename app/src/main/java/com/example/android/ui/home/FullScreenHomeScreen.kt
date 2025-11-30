@@ -26,27 +26,51 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import com.example.android.network.PhotoService
 import com.example.android.repository.PhotoRepository
-
+import com.example.android.network.ApiClient
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun FullScreenPhotoScreen(
+    viewModel: HomeViewModel,
     photoId: String?,
-    homeViewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(LocalContext.current, PhotoRepository(
-        LocalContext.current as PhotoService
-    ))),
-    onBack: () -> Unit
+    fileUrl: String?,
+    isLiked: Boolean,
+    likeCount: Int,
+    onBack: () -> Unit,
 ) {
+    val context = LocalContext.current
+
+    val photoRepository: PhotoRepository = remember {
+        val retrofit = ApiClient.getRetrofit(context)
+        val photoService = retrofit.create(PhotoService::class.java)
+        PhotoRepository(photoService)
+    }
+
+    val homeViewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(context, photoRepository)
+    )
 
     val photoState by homeViewModel.currentPhotoState
+
+    LaunchedEffect(photoId) {
+        val current = homeViewModel.currentPhotoState.value
+        if (current.photoId == null) {
+            homeViewModel.selectPhoto(photoId!!, fileUrl, isLiked, likeCount)
+        }
+    }
 
     val currentPhotoId = photoId
     val currentPhotoUrl = photoState.fileUrl
 
-    if (currentPhotoId == null || currentPhotoUrl ==null ) {
-        Log.d("FullScreen", "Photo ID: null (Navigation Argument Missing)")
-        onBack()
+    if (photoId == null) {
+        Log.e("FullScreen", "Missing photoId")
+        return
+    }
+    if (currentPhotoUrl == null) {
+        Log.d("FullScreen", "Loading photo...")
         return
     }
 

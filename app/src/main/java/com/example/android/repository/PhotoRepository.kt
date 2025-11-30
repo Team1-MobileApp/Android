@@ -86,5 +86,17 @@ open class PhotoRepository(
         Log.e("PhotoRepository", "Failed to load feed photos: ${e.message}")
         Result.failure(e)
     }
+
+    suspend fun uploadProfileImage(file: File): Result<String> = try {
+        val response = uploadPhotoFile(file)
+
+        if (response.url != null) {
+            Result.success(response.url)
+        } else {
+            Result.failure(RuntimeException("Image upload failed: URL is null"))
+        }
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }
 

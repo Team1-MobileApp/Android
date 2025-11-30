@@ -88,7 +88,7 @@ data class GetPhotoDetailResponse(
 
 data class PhotoUploadResponse(
     @SerializedName("id") val photoId: String,
-    val url: String
+    @SerializedName("fileUrl") val url: String
 )
 
 data class AddPhotoToAlbumRequest(

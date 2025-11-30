@@ -11,6 +11,7 @@ import com.example.android.network.UpdateProfileRequest
 import com.example.android.repository.UserRepository
 import com.example.android.repository.PhotoRepository
 import kotlinx.coroutines.launch
+import java.io.File
 
 data class Photo(
     val id: String,
@@ -100,14 +101,30 @@ open class ProfileViewModel(
 
         val newDisplayName = name ?: currentProfile.displayName
         val newBio = description ?: currentProfile.bio
-        val newAvatarUrl = profileImageUri?.toString() ?: currentProfile.avatarUrl
+        var newAvatarUrl = currentProfile.avatarUrl
 
-        val request = UpdateProfileRequest(
-            displayName = newDisplayName,
-            bio = newBio,
-            avatarUrl = newAvatarUrl
-        )
         viewModelScope.launch {
+            if (profileImageUri != null) {
+                val file = profileImageUri.path?.let { File(it) }
+
+                if (file != null && file.exists()) {
+                    photoRepository.uploadProfileImage(file) // <- PhotoRepository에 추가한 함수 호출
+                        .onSuccess { uploadedUrl ->
+                            newAvatarUrl = uploadedUrl // 성공 시, 새 웹 URL로 업데이트
+                        }.onFailure { e ->
+                            println("Image upload failed: ${e.message}")
+                            _uiState.value = ProfileUiState.Success(currentProfile)
+                            return@launch
+                        }
+                }
+            }
+
+            val request = UpdateProfileRequest(
+                displayName = newDisplayName,
+                bio = newBio,
+                avatarUrl = newAvatarUrl
+            )
+
             userRepository.updateMyProfile(request)
                 .onSuccess { response ->
                     _uiState.value = ProfileUiState.Success(response.toUserProfile())

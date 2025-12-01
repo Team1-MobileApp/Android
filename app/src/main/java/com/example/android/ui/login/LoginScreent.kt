@@ -1,6 +1,7 @@
 package com.example.android.ui.login
 
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import com.example.android.R
 
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -50,7 +52,11 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center
     ) {
 
-        Text("Four-togenic", style = MaterialTheme.typography.headlineLarge, color = Color.Gray)
+        Image(
+            painter = painterResource(id = R.drawable.logoimage),
+            contentDescription = "Logo Image",
+            modifier = Modifier.fillMaxHeight()
+        )
         Spacer(modifier = Modifier.height(32.dp))
 
 

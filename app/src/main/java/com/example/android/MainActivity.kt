@@ -89,7 +89,7 @@ class MainActivity : ComponentActivity() {
                     topBar = {
                         if (showBars) {
                             TopBar(
-                                title = "Four-togenic",
+                                imageRes = R.drawable.logoimage,
                                 onCameraClick = onCameraClick,
                                 showBackButton = currentRoute?.startsWith("albumDetail") == true ||
                                         currentRoute?.startsWith("photoDetail") == true,

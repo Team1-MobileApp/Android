@@ -28,6 +28,7 @@ import com.example.android.network.PhotoService
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.remember
+import androidx.navigation.NavController
 import coil.compose.AsyncImagePainter
 import com.example.android.network.AddPhotoToAlbumRequest
 import com.example.android.network.ChangeVisibilityRequest
@@ -47,7 +48,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 @Composable
 fun HomeScreen(
-    onPhotoClick: (String) -> Unit
+    //onPhotoClick: (String) -> Unit
+    navController: NavController,
+    viewModel: HomeViewModel
 ) {
     val context = LocalContext.current
 
@@ -91,15 +94,29 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(homeViewModel.homePhotos.value) { photo ->
+            items(homePhotos) { photo ->
                 Box(
                     modifier = Modifier
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(8.dp))
                         .clickable {
-                            Log.d("HomeScreen", "Server Photo Clicked : ${photo.id}")
-                            homeViewModel.selectPhoto(photo.id, photo.url, false, photo.likeCount)
-                            onPhotoClick(photo.id)
+//                            Log.d("HomeScreen", "Server Photo Clicked : ${photo.id}")
+//                            homeViewModel.selectPhoto(photo.id, photo.url, false, photo.likeCount)
+//                            onPhotoClick(photo.id)
+
+                            photo.id.let { id ->
+                                val url = photo.url.orEmpty()
+                                val likeCount = photo.likeCount
+
+                                val encodedUrl = java.net.URLEncoder.encode(url, "UTF-8")
+                                val isLikedInt = if (photo.isLiked == true) 1 else 0
+                                navController.navigate(
+                                    "fullScreenPhoto/$id?fileUrl=$encodedUrl&isLiked=$isLikedInt&likeCount=$likeCount"
+                                )
+
+
+                                Log.d("NavGraph", "Navigating to fullScreenPhoto with ID: $id")
+                            }
                         }
                 ) {
                     val painter = rememberAsyncImagePainter(photo.url)
@@ -124,7 +141,7 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxSize()
                         )
                     }
-                    PhotoOverlay(photo.likeCount, photo.daysAgo)
+                    PhotoOverlay(photo.isLiked,photo.likeCount, photo.daysAgo)
                 }
 
             }
@@ -134,7 +151,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun PhotoOverlay(likeCount: Int, daysAgo: Int) {
+fun PhotoOverlay(isLiked : Boolean?, likeCount: Int, daysAgo: Int) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -152,7 +169,7 @@ fun PhotoOverlay(likeCount: Int, daysAgo: Int) {
             Icon(
                 Icons.Filled.Favorite,
                 contentDescription = "Likes",
-                tint = Color.White,
+                tint = if (isLiked == true) Color.Red else Color.White,
                 modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))

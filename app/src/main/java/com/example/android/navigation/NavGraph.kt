@@ -26,6 +26,8 @@ import com.example.android.ui.album.AlbumScreen
 import com.example.android.ui.components.QRScannerScreenWrapper
 import com.example.android.ui.home.FullScreenPhotoScreen
 import com.example.android.ui.home.HomeScreen
+import com.example.android.ui.home.HomeViewModel
+import com.example.android.ui.home.HomeViewModelFactory
 import com.example.android.ui.profile.ProfileScreen
 import com.example.android.ui.login.LoginScreen
 import com.example.android.ui.login.LoginViewModel
@@ -37,6 +39,11 @@ fun NavGraph(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val retrofit = remember { ApiClient.getRetrofit(context) }
+    val photoRepository = remember { PhotoRepository(retrofit.create(PhotoService::class.java)) }
+    val homeViewModelFactory = remember { HomeViewModelFactory(context, photoRepository) }
+
     NavHost(
         navController = navController,
         startDestination = "login",
@@ -70,26 +77,47 @@ fun NavGraph(
             )
         }
 
-        composable("home") { HomeScreen(
-            onPhotoClick = { photoId ->
-                Log.d("NavGraph", "Navigating to fullScreenPhoto with ID: $photoId")
-                navController.navigate("fullScreenPhoto/$photoId")
-            }
-        ) }
+        composable("home") {
+            val homeViewModel: HomeViewModel = viewModel(
+                factory = homeViewModelFactory
+            )
+            HomeScreen(
+                navController = navController,
+                viewModel = homeViewModel
+            ) }
         composable("album") { AlbumScreen(navController) }
         composable("profile") { ProfileScreen() }
         composable(
-            route = "fullScreenPhoto/{photoId}",
-            arguments = listOf(navArgument("photoId") { type = NavType.StringType
-            nullable = true})
+            route = "fullScreenPhoto/{photoId}?fileUrl={fileUrl}&isLiked={isLiked}&likeCount={likeCount}",
+            arguments = listOf(
+                navArgument("photoId") { type = NavType.StringType; nullable = true },
+                navArgument("fileUrl") { type = NavType.StringType; nullable = true },
+                navArgument("isLiked") { type = NavType.IntType; defaultValue = 0 },
+                navArgument("likeCount") { type = NavType.IntType; defaultValue = 0 }
+            )
         ) { backStackEntry ->
+            val homeBackStackEntry = remember(backStackEntry) {
+                navController.getBackStackEntry("home")
+            }
+            val homeViewModel: HomeViewModel = viewModel(
+            viewModelStoreOwner = homeBackStackEntry,
+            factory = homeViewModelFactory
+            )
+            val photoId = backStackEntry.arguments?.getString("photoId")
+            val fileUrl = backStackEntry.arguments?.getString("fileUrl")
+            val isLiked = (backStackEntry.arguments?.getInt("isLiked") ?: 0) == 1
+            val likeCount = backStackEntry.arguments?.getInt("likeCount") ?: 0
 
             FullScreenPhotoScreen(
-                photoId = backStackEntry.arguments?.getString("photoId"),
-                onBack = {
-                    navController.popBackStack()
-                }
+                viewModel = homeViewModel,
+                photoId = photoId,
+                fileUrl = fileUrl,
+                isLiked = isLiked,
+                likeCount = likeCount,
+                onBack = { navController.popBackStack() }
             )
+
+
         }
         composable(
             "albumDetail/{albumId}",

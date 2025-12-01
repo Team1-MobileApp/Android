@@ -13,6 +13,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import com.example.android.repository.PhotoRepository
 import com.example.android.network.UserPhotoItemResponse
+import kotlinx.coroutines.CancellationException
 
 data class PhotoState(
     val photoId : String?= null,
@@ -30,7 +31,9 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
     val currentPhotoState: State<PhotoState> = _currentPhotoState
 
     init{
-        loadHomePhotos()
+        if (_homePhotos.value.isEmpty()) {
+            loadHomePhotos()
+        }
     }
     private fun loadHomePhotos() {
         viewModelScope.launch {
@@ -43,8 +46,13 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
                         Log.d("PhotoURLCheck", "Photo ID: ${photo.id}, URL: ${photo.url}")
                     }
                 }
-                .onFailure {
-                    Log.e("HomeViewModel", "Failed to load feed photos: ${it.message}")
+                .onFailure { e ->
+                    if (e is CancellationException) {
+                        Log.d("HomeViewModel", "Feed photo loading job cancelled.")
+                        throw e
+                    } else {
+                        Log.e("HomeViewModel", "Failed to load feed photos: ${e.message}")
+                    }
                 }
         }
     }
@@ -53,12 +61,12 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
 
 
 
-    fun selectPhoto(photoId : String, fileUrl: String?, initialIsLiked : Boolean, initialLikeCount : Int) {
+    fun selectPhoto(photoId : String, fileUrl: String?, isLiked : Boolean, initialLikeCount : Int) {
         Log.d("HomeViewModel", "Selecting photo with ID: $photoId , FileUrl : $fileUrl")
         _currentPhotoState.value = PhotoState(
             photoId = photoId,
             fileUrl = fileUrl,
-            isLiked = initialIsLiked,
+            isLiked = isLiked,
             likeCount = initialLikeCount
         )
     }
@@ -66,12 +74,9 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
 
     fun toggleLike() {
         val currentState = _currentPhotoState.value
-        val photoId = currentState.photoId
+        val photoId = currentState.photoId ?: return
+        val isCurrentlyLiked = currentState.isLiked
 
-        if (photoId == null){
-            Log.e("HomeViewModel","Cannot toggle like : PhotoId is null")
-            return
-        }
 
         viewModelScope.launch{
             val result = if (currentState.isLiked){
@@ -87,6 +92,15 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
                     isLiked = newIsLiked,
                     likeCount = newLikeCount
                 )
+
+                _homePhotos.value = _homePhotos.value.map { photo ->
+                    if (photo.id == photoId) {
+                        photo.copy(
+                            isLiked = newIsLiked, // isLiked는 Boolean? 타입이지만, newIsLiked (Boolean)로 업데이트
+                            likeCount = newLikeCount
+                        )
+                    } else photo
+                }
                 Log.d("HomeViewModel","Like toggled successfully. isLiked = $newIsLiked, count = $newLikeCount")
             }.onFailure {
                 Log.e("HomeViewModel","Failed to toggle like: ${it.message}")
@@ -95,7 +109,7 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
     }
 
 
-    // 공유 기능 추후 구현해야ㅑㅏㅁ..
+    // 공유 기능 -> 테스트 필요
     fun sharePhoto() {
         val photoUrl = _currentPhotoState.value.fileUrl
 
@@ -110,7 +124,7 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
             action = Intent.ACTION_SEND
             type = "image/*"
             putExtra(Intent.EXTRA_STREAM, imageUri)
-            putExtra(Intent.EXTRA_TEXT, "이 사진을 공유합니다: $photoUrl")
+            putExtra(Intent.EXTRA_TEXT, "사진 공유: $photoUrl")
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
 

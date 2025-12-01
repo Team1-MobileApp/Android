@@ -57,10 +57,6 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
         }
     }
 
-
-
-
-
     fun selectPhoto(photoId : String, fileUrl: String?, isLiked : Boolean, initialLikeCount : Int) {
         Log.d("HomeViewModel", "Selecting photo with ID: $photoId , FileUrl : $fileUrl")
         _currentPhotoState.value = PhotoState(
@@ -97,7 +93,7 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
                     if (photo.id == photoId) {
                         photo.copy(
                             isLiked = newIsLiked, // isLiked는 Boolean? 타입이지만, newIsLiked (Boolean)로 업데이트
-                            likeCount = newLikeCount
+                            likesCount = newLikeCount
                         )
                     } else photo
                 }

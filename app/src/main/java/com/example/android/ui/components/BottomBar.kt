@@ -22,7 +22,9 @@ fun BottomBar(navController: NavController) {
 
     NavigationBar {
         NavigationBarItem(
-            selected = currentRoute == "album",
+            selected = currentRoute?.startsWith("album") == true ||
+                    currentRoute?.startsWith("albumDetail") == true ||
+                    currentRoute?.startsWith("photoDetail") == true,
             onClick = {
                 navController.navigate("album") {
                     launchSingleTop = true

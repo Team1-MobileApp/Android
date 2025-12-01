@@ -153,7 +153,7 @@ fun ProfileScreen(profileViewModel: ProfileViewModel = viewModel(factory = Profi
                     }
                 }
 
-                // 앨범
+                // 사진 띄우기 (본인 사진들 중 PUBLIC인것만 띄우게 설정)
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(3),
                     modifier = Modifier
@@ -171,9 +171,8 @@ fun ProfileScreen(profileViewModel: ProfileViewModel = viewModel(factory = Profi
                                 .clip(RoundedCornerShape(8.dp))
                         ) {
                             Image(
-
                                 painter = rememberAsyncImagePainter(photo.imageUrl),
-                                contentDescription = "Album Photo",
+                                contentDescription = "My Public Photos",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize()
                             )

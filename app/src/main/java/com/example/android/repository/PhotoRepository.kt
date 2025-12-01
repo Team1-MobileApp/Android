@@ -11,6 +11,7 @@ import com.example.android.network.GetPhotoDetailResponse
 import com.example.android.network.LikeRequest
 import com.example.android.network.PhotoUploadResponse
 import com.example.android.network.UserPhotoItemResponse
+import com.example.android.network.getMyPhotoResponse
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -32,6 +33,15 @@ open class PhotoRepository(
 
         // API 호출
         return api.uploadPhotoFile(filePart, visibilityPart)
+    }
+
+    suspend fun getMyPhoto(limit: Int, cursor: String?, visibility: String = "PUBLIC"): Result<getMyPhotoResponse> {
+        return try {
+            val response = api.getMyPhoto(limit, cursor, visibility)
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     suspend fun getPhotoDetail(photoId: String): GetPhotoDetailResponse {
@@ -56,12 +66,13 @@ open class PhotoRepository(
     suspend fun changeVisibility(photoId: String, newVisibility: String): ChangeVisibilityResponse {
         return api.changeVisibility(photoId, ChangeVisibilityRequest(newVisibility))
     }
-    suspend fun getMyUploadedPhotos(): Result<List<UserPhotoItemResponse>> = try {
-        val response = api.getMyUploadedPhotos()
-        Result.success(response)
-    } catch (e: Exception) {
-        Result.failure(e)
-    }
+
+//    suspend fun getMyUploadedPhotos(): Result<List<UserPhotoItemResponse>> = try {
+//        val response = api.getMyUploadedPhotos()
+//        Result.success(response)
+//    } catch (e: Exception) {
+//        Result.failure(e)
+//    }
 
     suspend fun addPhotoLike(photoId : String) : Result<Unit> =try{
         val request = LikeRequest(targetType = "PHOTO", targetId = photoId)

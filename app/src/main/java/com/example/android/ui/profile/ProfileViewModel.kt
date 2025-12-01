@@ -139,7 +139,7 @@ open class ProfileViewModel(
     }
 
     open fun loadPhotos(
-        limit: Int = 30,
+        limit: Int = 100,
         cursor: String? = null,
         visibility: String = "PUBLIC"
     ) {

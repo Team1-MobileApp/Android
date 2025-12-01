@@ -30,16 +30,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.remember
 import androidx.navigation.NavController
 import coil.compose.AsyncImagePainter
-import com.example.android.network.AddPhotoToAlbumRequest
-import com.example.android.network.ChangeVisibilityRequest
-import com.example.android.network.ChangeVisibilityResponse
-import com.example.android.network.DeletePhotoFromAlbumResponse
-import com.example.android.network.DeletePhotoResponse
-import com.example.android.network.GetPhotoDetailResponse
-import com.example.android.network.LikeRequest
-import com.example.android.network.UserPhotoItemResponse
-import com.example.android.ui.home.HomeViewModel
-import com.example.android.ui.home.HomeViewModelFactory
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -100,10 +90,6 @@ fun HomeScreen(
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(8.dp))
                         .clickable {
-//                            Log.d("HomeScreen", "Server Photo Clicked : ${photo.id}")
-//                            homeViewModel.selectPhoto(photo.id, photo.url, false, photo.likeCount)
-//                            onPhotoClick(photo.id)
-
                             photo.id.let { id ->
                                 val url = photo.url.orEmpty()
                                 val likeCount = photo.likesCount
@@ -113,7 +99,6 @@ fun HomeScreen(
                                 navController.navigate(
                                     "fullScreenPhoto/$id?fileUrl=$encodedUrl&isLiked=$isLikedInt&likeCount=$likeCount"
                                 )
-
 
                                 Log.d("NavGraph", "Navigating to fullScreenPhoto with ID: $id")
                             }

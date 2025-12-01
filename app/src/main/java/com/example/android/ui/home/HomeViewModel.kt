@@ -57,10 +57,6 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
         }
     }
 
-
-
-
-
     fun selectPhoto(photoId : String, fileUrl: String?, isLiked : Boolean, initialLikeCount : Int) {
         Log.d("HomeViewModel", "Selecting photo with ID: $photoId , FileUrl : $fileUrl")
         _currentPhotoState.value = PhotoState(

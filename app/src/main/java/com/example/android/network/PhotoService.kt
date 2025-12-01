@@ -23,6 +23,13 @@ interface PhotoService {
         @Part("visibility") visibility: RequestBody
     ): PhotoUploadResponse
 
+    @GET("/photos")
+    suspend fun getMyPhoto(
+        @Query("limit") limit: Int,
+        @Query("cursor") cursor: String?,
+        @Query("visibility") visibility: String = "PUBLIC"
+    ): getMyPhotoResponse
+
     @GET("/photos/{photoId}")
     suspend fun getPhotoDetail(
         @Path("photoId") photoId: String,
@@ -49,8 +56,8 @@ interface PhotoService {
         @Body request: ChangeVisibilityRequest
     ): ChangeVisibilityResponse
 
-    @GET("/users/me/photos")
-    suspend fun getMyUploadedPhotos(): List<UserPhotoItemResponse>
+//    @GET("/users/me/photos")
+//    suspend fun getMyUploadedPhotos(): List<UserPhotoItemResponse>
 
     // 좋아요 추가
     @POST("/likes")
@@ -71,14 +78,6 @@ interface PhotoService {
 
 }
 
-
-data class UserPhotoItemResponse(
-    val id: String,
-    @SerializedName("fileUrl") val url: String?,
-    val isLiked : Boolean?=false,
-    val likeCount: Int,
-    val daysAgo: Int
-)
 data class GetPhotoDetailResponse(
     val photoId : String,
     val fileUrl : String,
@@ -90,6 +89,23 @@ data class GetPhotoDetailResponse(
 data class PhotoUploadResponse(
     @SerializedName("id") val photoId: String,
     @SerializedName("fileUrl") val url: String
+)
+
+data class getMyPhotoResponse(
+    val items : List<getMyPhotoSingleResponse>,
+    val nextCursor : String?
+)
+
+data class getMyPhotoSingleResponse(
+    val id: String,
+    val ownerId: String,
+    val fileUrl: String,
+    val title: String,
+    val description: String,
+    val visibility: String,
+    val isShared: String,
+    val createdAt: String,
+    val updatedAt: String
 )
 
 data class AddPhotoToAlbumRequest(
@@ -127,5 +143,13 @@ data class FeedRequest(
 data class FeedResponse(
     val items : List<UserPhotoItemResponse>,
     val nextCursor : String?
+)
+
+data class UserPhotoItemResponse(
+    val id: String,
+    @SerializedName("fileUrl") val url: String?,
+    val isLiked : Boolean?=false,
+    val likesCount: Int,
+    val daysAgo: Int
 )
 

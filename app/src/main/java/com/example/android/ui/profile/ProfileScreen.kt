@@ -153,7 +153,7 @@ fun ProfileScreen(profileViewModel: ProfileViewModel = viewModel(factory = Profi
                     }
                 }
 
-                // 앨범
+                // 사진 띄우기
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(3),
                     modifier = Modifier
@@ -171,7 +171,6 @@ fun ProfileScreen(profileViewModel: ProfileViewModel = viewModel(factory = Profi
                                 .clip(RoundedCornerShape(8.dp))
                         ) {
                             Image(
-
                                 painter = rememberAsyncImagePainter(photo.imageUrl),
                                 contentDescription = "Album Photo",
                                 contentScale = ContentScale.Crop,

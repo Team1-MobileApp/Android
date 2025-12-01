@@ -106,7 +106,7 @@ fun HomeScreen(
 
                             photo.id.let { id ->
                                 val url = photo.url.orEmpty()
-                                val likeCount = photo.likeCount
+                                val likeCount = photo.likesCount
 
                                 val encodedUrl = java.net.URLEncoder.encode(url, "UTF-8")
                                 val isLikedInt = if (photo.isLiked == true) 1 else 0
@@ -141,7 +141,7 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxSize()
                         )
                     }
-                    PhotoOverlay(photo.isLiked,photo.likeCount, photo.daysAgo)
+                    PhotoOverlay(photo.isLiked,photo.likesCount, photo.daysAgo)
                 }
 
             }

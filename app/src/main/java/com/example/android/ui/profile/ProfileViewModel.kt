@@ -12,6 +12,9 @@ import com.example.android.repository.UserRepository
 import com.example.android.repository.PhotoRepository
 import kotlinx.coroutines.launch
 import java.io.File
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 data class Photo(
     val id: String,
@@ -62,7 +65,7 @@ open class ProfileViewModel(
 
     init {
         loadUserProfile()
-        loadAlbumPhotos()
+        loadPhotos()
     }
 
     open fun loadUserProfile() {
@@ -77,18 +80,18 @@ open class ProfileViewModel(
         }
     }
 
-    open fun loadAlbumPhotos() {
-        viewModelScope.launch {
-            photoRepository.getMyUploadedPhotos()
-                .onSuccess { photoResponses ->
-                    _albumPhotos.value = photoResponses.map {
-                        Photo(id = it.id, imageUrl = it.url, likeCount = it.likeCount, daysAgo = it.daysAgo)
-                    }
-                }.onFailure { e ->
-                    _albumPhotos.value = emptyList()
-                }
-        }
-    }
+//    open fun loadAlbumPhotos() {
+//        viewModelScope.launch {
+//            photoRepository.getMyUploadedPhotos()
+//                .onSuccess { photoResponses ->
+//                    _albumPhotos.value = photoResponses.map {
+//                        Photo(id = it.id, imageUrl = it.url, likeCount = it.likesCount, daysAgo = it.daysAgo)
+//                    }
+//                }.onFailure { e ->
+//                    _albumPhotos.value = emptyList()
+//                }
+//        }
+//    }
 
     open fun updateProfile(
         name: String? = null,
@@ -133,5 +136,43 @@ open class ProfileViewModel(
                     println("fail to update profile: ${e.message}")
                 }
         }
+    }
+
+    open fun loadPhotos(
+        limit: Int = 30,
+        cursor: String? = null,
+        visibility: String = "PUBLIC"
+    ) {
+        viewModelScope.launch {
+            photoRepository.getMyPhoto(limit, cursor, visibility)
+                .onSuccess { response ->
+
+                    val photoItems = response.items.map { item ->
+                        Photo(
+                            id = item.id,
+                            imageUrl = item.fileUrl,     // 서버에서 받은 이미지 URL
+                            likeCount = 0,               // API에 없어서 0으로 고정
+                            daysAgo = calculateDaysAgo(item.createdAt) // createdAt 기반 계산
+                        )
+                    }
+
+                    _albumPhotos.value = photoItems
+                }
+                .onFailure { e ->
+                    println("Failed to load album photos: ${e.message}")
+                    _albumPhotos.value = emptyList()
+                }
+        }
+    }
+}
+
+fun calculateDaysAgo(createdAt: String): Int {
+    return try {
+        val uploadedTime = OffsetDateTime.parse(createdAt)
+        val now = OffsetDateTime.now(ZoneId.systemDefault())
+
+        ChronoUnit.DAYS.between(uploadedTime.toLocalDate(), now.toLocalDate()).toInt()
+    } catch (e: Exception) {
+        0 // 파싱 실패 시 기본값
     }
 }

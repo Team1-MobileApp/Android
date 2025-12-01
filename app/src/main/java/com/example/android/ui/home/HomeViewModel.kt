@@ -97,7 +97,7 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
                     if (photo.id == photoId) {
                         photo.copy(
                             isLiked = newIsLiked, // isLiked는 Boolean? 타입이지만, newIsLiked (Boolean)로 업데이트
-                            likeCount = newLikeCount
+                            likesCount = newLikeCount
                         )
                     } else photo
                 }

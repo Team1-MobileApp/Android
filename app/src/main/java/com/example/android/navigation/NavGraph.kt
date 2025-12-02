@@ -86,14 +86,15 @@ fun NavGraph(
                 viewModel = homeViewModel
             ) }
         composable("album") { AlbumScreen(navController) }
-        composable("profile") { ProfileScreen() }
+        composable("profile") { ProfileScreen(navController) }
         composable(
-            route = "fullScreenPhoto/{photoId}?fileUrl={fileUrl}&isLiked={isLiked}&likeCount={likeCount}",
+            route = "fullScreenPhoto/{photoId}?fileUrl={fileUrl}&isLiked={isLiked}&likeCount={likeCount}&hoursAgo={hoursAgo}",
             arguments = listOf(
                 navArgument("photoId") { type = NavType.StringType; nullable = true },
                 navArgument("fileUrl") { type = NavType.StringType; nullable = true },
                 navArgument("isLiked") { type = NavType.IntType; defaultValue = 0 },
-                navArgument("likeCount") { type = NavType.IntType; defaultValue = 0 }
+                navArgument("likeCount") { type = NavType.IntType; defaultValue = 0 },
+                navArgument("hoursAgo") { type = NavType.IntType; defaultValue = 0 }
             )
         ) { backStackEntry ->
             val homeBackStackEntry = remember(backStackEntry) {
@@ -107,6 +108,7 @@ fun NavGraph(
             val fileUrl = backStackEntry.arguments?.getString("fileUrl")
             val isLiked = (backStackEntry.arguments?.getInt("isLiked") ?: 0) == 1
             val likeCount = backStackEntry.arguments?.getInt("likeCount") ?: 0
+            val hoursAgo = backStackEntry.arguments?.getInt("hoursAgo") ?: 0
 
             FullScreenPhotoScreen(
                 viewModel = homeViewModel,
@@ -114,6 +116,7 @@ fun NavGraph(
                 fileUrl = fileUrl,
                 isLiked = isLiked,
                 likeCount = likeCount,
+                hoursAgo = hoursAgo,
                 onBack = { navController.popBackStack() }
             )
 

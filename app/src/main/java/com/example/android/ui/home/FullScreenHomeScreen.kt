@@ -39,6 +39,7 @@ fun FullScreenPhotoScreen(
     fileUrl: String?,
     isLiked: Boolean,
     likeCount: Int,
+    hoursAgo : Int,
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -58,7 +59,7 @@ fun FullScreenPhotoScreen(
     LaunchedEffect(photoId) {
         val current = homeViewModel.currentPhotoState.value
         if (current.photoId == null) {
-            homeViewModel.selectPhoto(photoId!!, fileUrl, isLiked, likeCount)
+            homeViewModel.selectPhoto(photoId!!, fileUrl, isLiked, likeCount,hoursAgo)
         }
     }
 
@@ -143,14 +144,6 @@ fun FullScreenPhotoScreen(
                 )
             }
 
-            // 댓글 버튼 (댓글 기능 구현할 예정인가?)
-            IconButton(onClick = { /* TODO: 댓글 기능 */ }) {
-                Icon(
-                    Icons.Filled.ModeComment,
-                    contentDescription = "Comment",
-                    tint = Color.White
-                )
-            }
 
             // 공유 버튼
             IconButton(onClick = { homeViewModel.sharePhoto() }) {

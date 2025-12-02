@@ -15,12 +15,13 @@ import java.io.File
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import java.time.Duration
 
 data class Photo(
     val id: String,
     val imageUrl: String?,
     val likeCount: Int = 0,
-    val daysAgo: Int = 0
+    val hoursAgo: Int = 0
 )
 
 data class UserProfile(
@@ -150,9 +151,9 @@ open class ProfileViewModel(
                     val photoItems = response.items.map { item ->
                         Photo(
                             id = item.id,
-                            imageUrl = item.fileUrl,     // 서버에서 받은 이미지 URL
+                            imageUrl = item.fileUrl,
                             likeCount = 0,               // API에 없어서 0으로 고정
-                            daysAgo = calculateDaysAgo(item.createdAt) // createdAt 기반 계산
+                            hoursAgo = calculateTimeAgoInHours(item.createdAt)
                         )
                     }
 
@@ -163,6 +164,17 @@ open class ProfileViewModel(
                     _albumPhotos.value = emptyList()
                 }
         }
+    }
+}
+fun calculateTimeAgoInHours(createdAt: String): Int {
+    return try {
+        val uploadedTime = OffsetDateTime.parse(createdAt)
+        val now = OffsetDateTime.now(ZoneId.systemDefault())
+
+        val duration = Duration.between(uploadedTime, now)
+        duration.toHours().toInt()
+    } catch (e: Exception) {
+        0
     }
 }
 

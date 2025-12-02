@@ -85,6 +85,7 @@ fun HomeScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(homePhotos) { photo ->
+                val hoursAgo = photo.hoursAgo
                 Box(
                     modifier = Modifier
                         .aspectRatio(1f)
@@ -93,11 +94,18 @@ fun HomeScreen(
                             photo.id.let { id ->
                                 val url = photo.url.orEmpty()
                                 val likeCount = photo.likesCount
+                                homeViewModel.selectPhoto(
+                                    photoId = id,
+                                    fileUrl = url,
+                                    isLiked = photo.isLiked == true,
+                                    initialLikeCount = likeCount,
+                                    hoursAgo = hoursAgo
+                                )
 
                                 val encodedUrl = java.net.URLEncoder.encode(url, "UTF-8")
                                 val isLikedInt = if (photo.isLiked == true) 1 else 0
                                 navController.navigate(
-                                    "fullScreenPhoto/$id?fileUrl=$encodedUrl&isLiked=$isLikedInt&likeCount=$likeCount"
+                                    "fullScreenPhoto/$id?fileUrl=$encodedUrl&isLiked=$isLikedInt&likeCount=$likeCount&hoursAgo=$hoursAgo"
                                 )
 
                                 Log.d("NavGraph", "Navigating to fullScreenPhoto with ID: $id")
@@ -126,7 +134,7 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxSize()
                         )
                     }
-                    PhotoOverlay(photo.isLiked,photo.likesCount, photo.daysAgo)
+                    PhotoOverlay(photo.isLiked,photo.likesCount, hoursAgo)
                 }
 
             }
@@ -136,7 +144,12 @@ fun HomeScreen(
 }
 
 @Composable
-fun PhotoOverlay(isLiked : Boolean?, likeCount: Int, daysAgo: Int) {
+fun PhotoOverlay(isLiked : Boolean?, likeCount: Int, hoursAgo: Int) {
+    val timeText = if (hoursAgo < 24) {
+        "${hoursAgo}h ago"
+    } else {
+        "${hoursAgo / 24}d ago"
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -167,10 +180,9 @@ fun PhotoOverlay(isLiked : Boolean?, likeCount: Int, daysAgo: Int) {
 
         // 사진 올린 날짜 표시
         Text(
-            text = "${daysAgo}d ago",
+            text = timeText,
             color = Color.White,
-            fontSize = 12.sp,
-            modifier = Modifier.align(Alignment.TopEnd)
+            fontSize = 10.sp
         )
     }
 }

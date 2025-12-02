@@ -25,6 +25,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.core.content.ContextCompat
 import com.example.android.navigation.NavGraph
@@ -61,10 +62,8 @@ class MainActivity : ComponentActivity() {
                 val galleryPermissionLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.RequestPermission(),
                     onResult = { granted ->
-                        if (granted) {
-                            // TODO: 권한 허용 시 MediaStore에서 이미지 로드
-                        } else {
-                            // TODO: 권한 거부 시 안내 (ex. Toast)
+                        if (!granted) {
+                            Toast.makeText(context, "갤러리 접근 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
                         }
                     }
                 )

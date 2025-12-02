@@ -150,6 +150,7 @@ data class UserPhotoItemResponse(
     @SerializedName("fileUrl") val url: String?,
     val isLiked : Boolean?=false,
     val likesCount: Int,
-    val daysAgo: Int
+    val daysAgo: Int,
+    val createdAt: String
 )
 

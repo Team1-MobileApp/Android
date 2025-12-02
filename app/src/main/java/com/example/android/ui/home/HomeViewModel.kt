@@ -14,18 +14,43 @@ import kotlinx.coroutines.launch
 import com.example.android.repository.PhotoRepository
 import com.example.android.network.UserPhotoItemResponse
 import kotlinx.coroutines.CancellationException
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.Duration
+
+data class HomePhotoItem(
+    val id: String,
+    val url: String?,
+    val isLiked: Boolean? = false,
+    val likesCount: Int = 0,
+    val daysAgo: Int = 0,
+    val hoursAgo: Int = 0
+)
 
 data class PhotoState(
     val photoId : String?= null,
     val fileUrl: String? = null,
     val isLiked: Boolean = false,
-    val likeCount: Int = 0 // 초기 좋아요 수
+    val likeCount: Int = 0, // 초기 좋아요 수
+    val hoursAgo: Int = 0
 )
+
+fun calculateTimeAgoInHours(createdAt: String): Int {
+    return try {
+        val uploadedTime = OffsetDateTime.parse(createdAt)
+        val now = OffsetDateTime.now(ZoneId.systemDefault())
+
+        val duration = Duration.between(uploadedTime, now)
+        duration.toHours().toInt()
+    } catch (e: Exception) {
+        0
+    }
+}
 
 class HomeViewModel(private val context: Context,private val photoRepository: PhotoRepository) : ViewModel() {
 
-    private val _homePhotos = mutableStateOf<List<UserPhotoItemResponse>>(emptyList())
-    val homePhotos : State<List<UserPhotoItemResponse>> = _homePhotos
+    private val _homePhotos = mutableStateOf<List<HomePhotoItem>>(emptyList())
+    val homePhotos : State<List<HomePhotoItem>> = _homePhotos
 
     private val _currentPhotoState: MutableState<PhotoState> = mutableStateOf(PhotoState())
     val currentPhotoState: State<PhotoState> = _currentPhotoState
@@ -38,12 +63,18 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
     private fun loadHomePhotos() {
         viewModelScope.launch {
             photoRepository.getPublicFeed(sort = "latest", limit = 20)
-                .onSuccess {
-                    _homePhotos.value = it
-                    Log.d("HomeViewModel", "Loaded ${it.size} feed photos")
+                .onSuccess { responseList ->
 
-                    it.forEach { photo ->
-                        Log.d("PhotoURLCheck", "Photo ID: ${photo.id}, URL: ${photo.url}")
+                    _homePhotos.value = responseList.map { item ->
+                        val hours = calculateTimeAgoInHours(item.createdAt)
+                        HomePhotoItem(
+                            id = item.id,
+                            url = item.url,
+                            isLiked = item.isLiked,
+                            likesCount = item.likesCount,
+                            daysAgo = item.daysAgo,
+                            hoursAgo = hours // 계산된 hoursAgo 사용
+                        )
                     }
                 }
                 .onFailure { e ->
@@ -57,13 +88,14 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
         }
     }
 
-    fun selectPhoto(photoId : String, fileUrl: String?, isLiked : Boolean, initialLikeCount : Int) {
+    fun selectPhoto(photoId : String, fileUrl: String?, isLiked : Boolean, initialLikeCount : Int,hoursAgo: Int) {
         Log.d("HomeViewModel", "Selecting photo with ID: $photoId , FileUrl : $fileUrl")
         _currentPhotoState.value = PhotoState(
             photoId = photoId,
             fileUrl = fileUrl,
             isLiked = isLiked,
-            likeCount = initialLikeCount
+            likeCount = initialLikeCount,
+            hoursAgo = hoursAgo
         )
     }
 
@@ -92,7 +124,7 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
                 _homePhotos.value = _homePhotos.value.map { photo ->
                     if (photo.id == photoId) {
                         photo.copy(
-                            isLiked = newIsLiked, // isLiked는 Boolean? 타입이지만, newIsLiked (Boolean)로 업데이트
+                            isLiked = newIsLiked,
                             likesCount = newLikeCount
                         )
                     } else photo
@@ -105,7 +137,7 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
     }
 
 
-    // 공유 기능 -> 테스트 필요
+    // 공유 기능
     fun sharePhoto() {
         val photoUrl = _currentPhotoState.value.fileUrl
 
@@ -127,4 +159,6 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
         val shareIntent = Intent.createChooser(sendIntent, "사진 공유")
         context.startActivity(shareIntent)
     }
+
+
 }

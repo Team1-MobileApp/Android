@@ -41,14 +41,38 @@ import com.example.android.network.ApiClient
 import com.example.android.network.UserService
 import com.example.android.network.PhotoService
 import com.example.android.repository.PhotoRepository
+import com.example.android.ui.home.HomeViewModel
+import com.example.android.ui.home.HomeViewModelFactory
+import androidx.navigation.NavController
+import androidx.compose.runtime.remember
 
 @Composable
-fun ProfileScreen(profileViewModel: ProfileViewModel = viewModel(factory = ProfileViewModelFactory(LocalContext.current))) {
+fun ProfileScreen(
+    navController: NavController
+) {
+    val context = LocalContext.current
+    val profileViewModel: ProfileViewModel = viewModel(
+        factory = ProfileViewModelFactory(context)
+    )
+
+    val retrofit = remember { ApiClient.getRetrofit(context) }
+    val photoService = remember { retrofit.create(PhotoService::class.java) }
+    val photoRepository = remember { PhotoRepository(photoService) }
+
+    val homeViewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(
+            context,
+            photoRepository
+        )
+    )
+
+    val profileUiState by profileViewModel.uiState
+    val userPhotos by profileViewModel.albumPhotos
+
     val uiState = profileViewModel.uiState.value
     val albumPhotos = profileViewModel.albumPhotos.value
 
     val showDialogFor = remember { mutableStateOf<String?>(null) }
-    val context = LocalContext.current
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -141,19 +165,18 @@ fun ProfileScreen(profileViewModel: ProfileViewModel = viewModel(factory = Profi
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // post, like, talk
+                        // post, like
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceAround
                         ) {
                             ProfileStat(userProfile.photoCount.toString(), "post")
                             ProfileStat(userProfile.receivedLikeCount.toString(), "like")
-                            ProfileStat("26", "talk")
+                            //ProfileStat("26", "talk")
                         }
                     }
                 }
 
-                // 사진 띄우기 (본인 사진들 중 PUBLIC인것만 띄우게 설정)
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(3),
                     modifier = Modifier
@@ -165,10 +188,30 @@ fun ProfileScreen(profileViewModel: ProfileViewModel = viewModel(factory = Profi
                 ) {
 
                     items(albumPhotos) { photo ->
+                        val photoUrl = photo.imageUrl ?: ""
+                        val likeCount = photo.likeCount
+                        val hoursAgo = photo.hoursAgo
+
                         Box(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    homeViewModel.selectPhoto(
+                                        photoId = photo.id,
+                                        fileUrl = photoUrl,
+                                        isLiked = true,
+                                        initialLikeCount = likeCount,
+                                        hoursAgo = hoursAgo
+                                    )
+
+                                    val encodedUrl = java.net.URLEncoder.encode(photoUrl, "UTF-8")
+                                    val isLikedInt = 1
+
+                                    navController.navigate(
+                                        "fullScreenPhoto/${photo.id}?fileUrl=$encodedUrl&isLiked=$isLikedInt&likeCount=$likeCount&hoursAgo=$hoursAgo"
+                                    )
+                                }
                         ) {
                             Image(
                                 painter = rememberAsyncImagePainter(photo.imageUrl),
@@ -177,7 +220,7 @@ fun ProfileScreen(profileViewModel: ProfileViewModel = viewModel(factory = Profi
                                 modifier = Modifier.fillMaxSize()
                             )
 
-                            PhotoOverlay(likeCount = photo.likeCount, daysAgo = photo.daysAgo)
+                            PhotoOverlay(likeCount = photo.likeCount, hoursAgo =photo.hoursAgo)
 
                         }
                     }
@@ -273,7 +316,12 @@ fun copyImageToInternalStorage(context: Context, uri: Uri): Uri? {
 }
 
 @Composable
-fun PhotoOverlay(likeCount: Int, daysAgo: Int) {
+fun PhotoOverlay(likeCount: Int, hoursAgo: Int) {
+    val timeText = if (hoursAgo < 24) {
+        "${hoursAgo}h ago"
+    } else {
+        "${hoursAgo / 24}d ago"
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -292,9 +340,9 @@ fun PhotoOverlay(likeCount: Int, daysAgo: Int) {
                     fontSize = 12.sp
                 )
             }
-            // 시간
+            // 시간 (1일 이하면 시간을 표시하게 수정)
             Text(
-                text = "$daysAgo days ago",
+                text = timeText,
                 color = Color.White,
                 fontSize = 10.sp
             )

@@ -13,10 +13,13 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -65,6 +68,11 @@ fun ProfileScreen(
             photoRepository
         )
     )
+
+    LaunchedEffect(Unit) {
+        profileViewModel.loadUserProfile()
+        profileViewModel.loadPhotos()
+    }
 
     val profileUiState by profileViewModel.uiState
     val userPhotos by profileViewModel.albumPhotos
@@ -220,7 +228,7 @@ fun ProfileScreen(
                                 modifier = Modifier.fillMaxSize()
                             )
 
-                            PhotoOverlay(likeCount = photo.likeCount, hoursAgo =photo.hoursAgo)
+                            PhotoOverlay(isLiked = photo.isLiked, likeCount = photo.likeCount, hoursAgo =photo.hoursAgo)
 
                         }
                     }
@@ -316,36 +324,46 @@ fun copyImageToInternalStorage(context: Context, uri: Uri): Uri? {
 }
 
 @Composable
-fun PhotoOverlay(likeCount: Int, hoursAgo: Int) {
+fun PhotoOverlay(isLiked:Boolean, likeCount : Int, hoursAgo: Int) {
     val timeText = if (hoursAgo < 24) {
         "${hoursAgo}h ago"
     } else {
         "${hoursAgo / 24}d ago"
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.3f))
+            .background(
+                color = Color.Black.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(8.dp)
+            )
             .padding(8.dp)
     ) {
-        Column(
-            modifier = Modifier.align(Alignment.BottomStart)
+        // 좋아요 수 표시
+        Row(
+            modifier = Modifier.align(Alignment.BottomStart),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // 좋아요 수
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "♥ $likeCount",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp
-                )
-            }
-            // 시간 (1일 이하면 시간을 표시하게 수정)
+            Icon(
+                Icons.Filled.Favorite,
+                contentDescription = "Likes",
+                tint = if (isLiked == true) Color.Red else Color.White,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = timeText,
+                text = "$likeCount",
                 color = Color.White,
-                fontSize = 10.sp
+                fontSize = 12.sp
             )
         }
+
+        // 사진 올린 날짜 표시
+        Text(
+            text = timeText,
+            color = Color.White,
+            fontSize = 10.sp
+        )
     }
 }

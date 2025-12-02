@@ -40,8 +40,26 @@ class AlbumDetailViewModel(
         onSuccess: () -> Unit,
         onFailure: () -> Unit
     ) = viewModelScope.launch {
-        val result = albumRepo.deleteAlbum(albumId)
-        if (result) onSuccess() else onFailure()
+        try {
+            // 1) 앨범에 포함된 사진 목록 먼저 불러오기
+            val response = albumRepo.getAlbumPhotos(albumId)
+            val photoList = response.photos
+
+            // 2) 각 사진을 앨범에서 제거 + 사진 자체도 삭제
+            for (photo in photoList) {
+                // 앨범에서 사진 제거
+                photoRepo.deletePhotoFromAlbum(photo.id, albumId)
+                // 사진 자체도 삭제
+                photoRepo.deletePhoto(photo.id)
+            }
+
+            // 3) 모든 사진 정리 후 앨범 자체 삭제
+            val result = albumRepo.deleteAlbum(albumId)
+            if (result) onSuccess() else onFailure()
+
+        } catch (e: Exception) {
+            onFailure()
+        }
     }
 
     // 사진 업로드

@@ -21,6 +21,7 @@ data class Photo(
     val id: String,
     val imageUrl: String?,
     val likeCount: Int = 0,
+    val isLiked : Boolean,
     val hoursAgo: Int = 0
 )
 
@@ -152,7 +153,8 @@ open class ProfileViewModel(
                         Photo(
                             id = item.id,
                             imageUrl = item.fileUrl,
-                            likeCount = 0,               // API에 없어서 0으로 고정
+                            likeCount = item.likesCount,
+                            isLiked = item.isLiked,
                             hoursAgo = calculateTimeAgoInHours(item.createdAt)
                         )
                     }

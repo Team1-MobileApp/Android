@@ -28,6 +28,7 @@ interface PhotoService {
         @Query("limit") limit: Int,
         @Query("cursor") cursor: String?,
         @Query("visibility") visibility: String = "PUBLIC"
+
     ): getMyPhotoResponse
 
     @GET("/photos/{photoId}")
@@ -105,7 +106,9 @@ data class getMyPhotoSingleResponse(
     val visibility: String,
     val isShared: String,
     val createdAt: String,
-    val updatedAt: String
+    val updatedAt: String,
+    val likesCount: Int = 0,
+    val isLiked: Boolean = false
 )
 
 data class AddPhotoToAlbumRequest(
@@ -154,3 +157,8 @@ data class UserPhotoItemResponse(
     val createdAt: String
 )
 
+data class MyLikePhotoResponse(
+    val photoId: String,
+    val fileUrl: String,
+    val likesCount: Int
+)

@@ -27,8 +27,10 @@ import com.example.android.repository.PhotoRepository
 import com.example.android.network.PhotoService
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImagePainter
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -65,6 +67,14 @@ fun HomeScreen(
     val homeViewModel: HomeViewModel = viewModel(factory = factory)
     val homePhotos by homeViewModel.homePhotos
 
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+    LaunchedEffect(navBackStackEntry) {
+        Log.d("HomeScreen", "Screen Resumed/Recomposed. Forcing full photo refresh.")
+
+        homeViewModel.refreshHomePhotos()
+        homeViewModel.updateHomePhotosWithCurrentPhoto()
+    }
 
     Column(
         modifier = Modifier

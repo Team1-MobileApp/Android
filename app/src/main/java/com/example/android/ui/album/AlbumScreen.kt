@@ -54,7 +54,7 @@ fun AlbumScreen(
     val albumsWithAddButton = albums.map { AlbumItem(it.id.toString(), it.name ?: "제목 없음") } + AlbumItem("AddButton", "Add")
 
 
-    LazyVerticalGrid(columns = GridCells.Fixed(2)) {
+    LazyVerticalGrid(columns = GridCells.Fixed(2),contentPadding = PaddingValues(top = 16.dp, start = 8.dp, end = 8.dp, bottom = 8.dp)) {
 
         if (loading) {
             item {
@@ -69,7 +69,7 @@ fun AlbumScreen(
                 Box(
                     modifier = Modifier
                         .padding(8.dp)
-                        .aspectRatio(1f)
+                        .aspectRatio(1.33f)
                         .clip(RoundedCornerShape(8.dp))
                         .background(Color.LightGray)
                         .clickable { showDialog = true },
@@ -132,7 +132,7 @@ fun AlbumScreen(
                         painter = rememberAsyncImagePainter(R.drawable.ic_album),
                         contentDescription = album.title,
                         modifier = Modifier
-                            .aspectRatio(1f)
+                            .aspectRatio(1.33f)
                             .clip(RoundedCornerShape(8.dp)),
                         contentScale = ContentScale.Crop
                     )

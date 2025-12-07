@@ -60,6 +60,28 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
             loadHomePhotos()
         }
     }
+    fun refreshHomePhotos() {
+        viewModelScope.launch {
+            photoRepository.getPublicFeed(sort = "latest", limit = 20)
+                .onSuccess { responseList ->
+                    // ... (이전과 동일한 HomePhotoItem 매핑 로직) ...
+                    _homePhotos.value = responseList.map { item ->
+                        val hours = calculateTimeAgoInHours(item.createdAt)
+                        HomePhotoItem(
+                            id = item.id,
+                            url = item.url,
+                            isLiked = item.isLiked,
+                            likesCount = item.likesCount,
+                            daysAgo = item.daysAgo,
+                            hoursAgo = hours
+                        )
+                    }
+                }
+                .onFailure { e ->
+                }
+        }
+    }
+
     private fun loadHomePhotos() {
         viewModelScope.launch {
             photoRepository.getPublicFeed(sort = "latest", limit = 20)
@@ -73,7 +95,7 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
                             isLiked = item.isLiked,
                             likesCount = item.likesCount,
                             daysAgo = item.daysAgo,
-                            hoursAgo = hours // 계산된 hoursAgo 사용
+                            hoursAgo = hours
                         )
                     }
                 }
@@ -121,6 +143,8 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
                     likeCount = newLikeCount
                 )
 
+                //loadHomePhotos()
+
                 _homePhotos.value = _homePhotos.value.map { photo ->
                     if (photo.id == photoId) {
                         photo.copy(
@@ -129,6 +153,7 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
                         )
                     } else photo
                 }
+
                 Log.d("HomeViewModel","Like toggled successfully. isLiked = $newIsLiked, count = $newLikeCount")
             }.onFailure {
                 Log.e("HomeViewModel","Failed to toggle like: ${it.message}")
@@ -137,6 +162,24 @@ class HomeViewModel(private val context: Context,private val photoRepository: Ph
     }
 
 
+    fun updateHomePhotosWithCurrentPhoto() {
+        val currentState = _currentPhotoState.value
+        val photoId = currentState.photoId ?: return
+
+        val newIsLiked = currentState.isLiked
+        val newLikeCount = currentState.likeCount
+
+        _homePhotos.value = _homePhotos.value.map { photo ->
+            if (photo.id == photoId) {
+                photo.copy(
+                    isLiked = newIsLiked,
+                    likesCount = newLikeCount
+                )
+            } else photo
+        }
+
+        Log.d("HomeViewModel", "Home photos synchronized with current photo state.")
+    }
     // 공유 기능
     fun sharePhoto() {
         val photoUrl = _currentPhotoState.value.fileUrl

@@ -1,8 +1,12 @@
 package com.example.android.network
 
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.PATCH
+import retrofit2.http.Part
 import retrofit2.http.Path
 
 // GET /users/me
@@ -44,7 +48,14 @@ interface UserService{
     suspend fun getMyProfile() : MyProfileResponse
 
     @PATCH("users/me")
-    suspend fun updateMyProfile(@Body request : UpdateProfileRequest) : MyProfileResponse
+    @Multipart
+    suspend fun updateMyProfile(
+        @Part avatar: MultipartBody.Part?,
+        @Part("displayName") displayName: RequestBody?,
+        @Part("bio") bio: RequestBody?,
+        @Part("avatarUrl") avatarUrl: RequestBody?
+    ): MyProfileResponse
+
 
     @GET("users/{id}")
     suspend fun getUserProfile(@Path("id") userId : String) : UserProfileResponse

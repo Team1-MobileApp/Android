@@ -11,6 +11,10 @@ import com.example.android.network.UpdateProfileRequest
 import com.example.android.repository.UserRepository
 import com.example.android.repository.PhotoRepository
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -98,45 +102,47 @@ open class ProfileViewModel(
     open fun updateProfile(
         name: String? = null,
         description: String? = null,
-        profileImageUri: Uri? = null
+        profileImageUri: Uri? = null,
+        avatarUrlInput: String? = null // 선택적 URL 입력
     ) {
         val currentProfile = (_uiState.value as? ProfileUiState.Success)?.profile ?: return
 
         _uiState.value = ProfileUiState.Loading
 
-        val newDisplayName = name ?: currentProfile.displayName
-        val newBio = description ?: currentProfile.bio
-        var newAvatarUrl = currentProfile.avatarUrl
-
         viewModelScope.launch {
-            if (profileImageUri != null) {
-                val file = profileImageUri.path?.let { File(it) }
+            try {
+                val displayNamePart = (name ?: currentProfile.displayName)
+                    .toRequestBody("text/plain".toMediaTypeOrNull())
 
-                if (file != null && file.exists()) {
-                    photoRepository.uploadProfileImage(file) // <- PhotoRepository에 추가한 함수 호출
-                        .onSuccess { uploadedUrl ->
-                            newAvatarUrl = uploadedUrl // 성공 시, 새 웹 URL로 업데이트
-                        }.onFailure { e ->
-                            println("Image upload failed: ${e.message}")
-                            _uiState.value = ProfileUiState.Success(currentProfile)
-                            return@launch
-                        }
+                val bioPart = (description ?: currentProfile.bio ?: "")
+                    .toRequestBody("text/plain".toMediaTypeOrNull())
+
+                val avatarUrlPart = (avatarUrlInput ?: currentProfile.avatarUrl ?: "")
+                    .toRequestBody("text/plain".toMediaTypeOrNull())
+
+                // 이미지 파일 파트
+                var avatarPart: MultipartBody.Part? = null
+                if (profileImageUri != null) {
+                    val file = File(profileImageUri.path!!)
+                    if (file.exists()) {
+                        val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+                        avatarPart = MultipartBody.Part.createFormData("avatar", file.name, requestFile)
+                    }
                 }
+
+                val result = userRepository.updateMyProfile(
+                    avatarPart,
+                    displayNamePart,
+                    bioPart,
+                    avatarUrlPart
+                )
+
+                _uiState.value = ProfileUiState.Success(result.getOrThrow().toUserProfile())
+
+            } catch (e: Exception) {
+                println("fail to update profile: ${e.message}")
+                _uiState.value = ProfileUiState.Error("프로필 수정 실패: ${e.message}")
             }
-
-            val request = UpdateProfileRequest(
-                displayName = newDisplayName,
-                bio = newBio,
-                avatarUrl = newAvatarUrl
-            )
-
-            userRepository.updateMyProfile(request)
-                .onSuccess { response ->
-                    _uiState.value = ProfileUiState.Success(response.toUserProfile())
-                }.onFailure { e ->
-                    _uiState.value = ProfileUiState.Success(currentProfile)
-                    println("fail to update profile: ${e.message}")
-                }
         }
     }
 
